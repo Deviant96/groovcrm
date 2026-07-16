@@ -39,5 +39,5 @@ app.use('/api/export', authenticate, exportRouter);
 app.use(errorHandler);
 
 app.listen(env.PORT, () => {
-  console.log(`GroovCRM API listening on port ${env.PORT}`);
+  console.log(`GroovCRM API listening on port ${env.PORT} (express5-safe-validation)`);
 });

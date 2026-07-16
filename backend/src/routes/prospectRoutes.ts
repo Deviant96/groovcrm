@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import * as prospectController from '../controllers/prospectController.js';
-import { validateBody, validateQuery } from '../middleware/validate.js';
+import { validateBody } from '../middleware/validate.js';
 import {
   bulkDeleteSchema,
   bulkStatusSchema,
   noteCreateSchema,
   prospectCreateSchema,
-  prospectQuerySchema,
   prospectUpdateSchema,
 } from '../validators/schemas.js';
 
@@ -15,7 +14,7 @@ const router = Router();
 router.get('/follow-ups', prospectController.followUps);
 router.get('/stats', prospectController.stats);
 router.get('/search', prospectController.search);
-router.get('/', validateQuery(prospectQuerySchema), prospectController.list);
+router.get('/', prospectController.list);
 router.post('/', validateBody(prospectCreateSchema), prospectController.create);
 router.post('/bulk/status', validateBody(bulkStatusSchema), prospectController.bulkStatus);
 router.post('/bulk/delete', validateBody(bulkDeleteSchema), prospectController.bulkDelete);

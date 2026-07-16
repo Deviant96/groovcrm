@@ -2,15 +2,16 @@ import type { Request, Response, NextFunction } from 'express';
 import { parse } from 'csv-parse/sync';
 import * as importExportService from '../services/importExportService.js';
 import { AppError } from '../utils/errors.js';
+import { validatedBody } from '../middleware/validate.js';
 
 export async function preview(req: Request, res: Response, next: NextFunction) {
   try {
-    const { mapping, rows, csv, headers } = req.body as {
+    const { mapping, rows, csv, headers } = validatedBody<{
       mapping: importExportService.FieldMapping;
       rows?: Record<string, string | null>[];
       csv?: string;
       headers?: string[];
-    };
+    }>(req, res);
 
     let parsedRows = rows;
     if (!parsedRows && csv) {
@@ -40,7 +41,10 @@ export async function preview(req: Request, res: Response, next: NextFunction) {
 
 export async function confirm(req: Request, res: Response, next: NextFunction) {
   try {
-    const { mapping, rows } = req.body;
+    const { mapping, rows } = validatedBody<{
+      mapping: importExportService.FieldMapping;
+      rows: Record<string, string | null>[];
+    }>(req, res);
     const result = await importExportService.confirmImport(rows, mapping);
     res.json(result);
   } catch (err) {

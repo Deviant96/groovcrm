@@ -1,9 +1,12 @@
 import type { Request, Response, NextFunction } from 'express';
 import * as prospectService from '../services/prospectService.js';
+import { validatedBody } from '../middleware/validate.js';
+import { prospectQuerySchema } from '../validators/schemas.js';
 
 export async function list(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await prospectService.listProspects((res.locals.validatedQuery ?? req.query) as never);
+    const query = prospectQuerySchema.parse(req.query);
+    const result = await prospectService.listProspects(query);
     res.json(result);
   } catch (err) {
     next(err);
@@ -21,7 +24,7 @@ export async function getById(req: Request, res: Response, next: NextFunction) {
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
-    const prospect = await prospectService.createProspect(req.body);
+    const prospect = await prospectService.createProspect(validatedBody(req, res));
     res.status(201).json(prospect);
   } catch (err) {
     next(err);
@@ -30,7 +33,10 @@ export async function create(req: Request, res: Response, next: NextFunction) {
 
 export async function update(req: Request, res: Response, next: NextFunction) {
   try {
-    const prospect = await prospectService.updateProspect(req.params.id as string, req.body);
+    const prospect = await prospectService.updateProspect(
+      req.params.id as string,
+      validatedBody(req, res),
+    );
     res.json(prospect);
   } catch (err) {
     next(err);
@@ -48,7 +54,8 @@ export async function remove(req: Request, res: Response, next: NextFunction) {
 
 export async function bulkStatus(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await prospectService.bulkUpdateStatus(req.body.ids, req.body.status);
+    const body = validatedBody<{ ids: string[]; status: string }>(req, res);
+    const result = await prospectService.bulkUpdateStatus(body.ids, body.status as never);
     res.json(result);
   } catch (err) {
     next(err);
@@ -57,7 +64,8 @@ export async function bulkStatus(req: Request, res: Response, next: NextFunction
 
 export async function bulkDelete(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await prospectService.bulkDelete(req.body.ids);
+    const body = validatedBody<{ ids: string[] }>(req, res);
+    const result = await prospectService.bulkDelete(body.ids);
     res.json(result);
   } catch (err) {
     next(err);
@@ -66,7 +74,8 @@ export async function bulkDelete(req: Request, res: Response, next: NextFunction
 
 export async function addNote(req: Request, res: Response, next: NextFunction) {
   try {
-    const note = await prospectService.addNote(req.params.id as string, req.body.content);
+    const body = validatedBody<{ content: string }>(req, res);
+    const note = await prospectService.addNote(req.params.id as string, body.content);
     res.status(201).json(note);
   } catch (err) {
     next(err);

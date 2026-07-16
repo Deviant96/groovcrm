@@ -1,9 +1,14 @@
 import type { Request, Response, NextFunction } from 'express';
 import * as authService from '../services/authService.js';
+import { validatedBody } from '../middleware/validate.js';
 
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
-    const { email, password, rememberMe } = req.body;
+    const { email, password, rememberMe } = validatedBody<{
+      email: string;
+      password: string;
+      rememberMe?: boolean;
+    }>(req, res);
     const result = await authService.login(email, password, rememberMe);
     res.json(result);
   } catch (err) {
@@ -13,7 +18,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 
 export async function refresh(req: Request, res: Response, next: NextFunction) {
   try {
-    const { refreshToken } = req.body;
+    const { refreshToken } = validatedBody<{ refreshToken: string }>(req, res);
     const result = await authService.refresh(refreshToken);
     res.json(result);
   } catch (err) {
@@ -23,7 +28,8 @@ export async function refresh(req: Request, res: Response, next: NextFunction) {
 
 export async function logout(req: Request, res: Response, next: NextFunction) {
   try {
-    await authService.logout(req.body.refreshToken);
+    const body = validatedBody<{ refreshToken?: string }>(req, res);
+    await authService.logout(body.refreshToken);
     res.json({ ok: true });
   } catch (err) {
     next(err);
@@ -41,7 +47,10 @@ export async function me(req: Request, res: Response, next: NextFunction) {
 
 export async function changePassword(req: Request, res: Response, next: NextFunction) {
   try {
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword } = validatedBody<{
+      currentPassword: string;
+      newPassword: string;
+    }>(req, res);
     await authService.changePassword(req.user!.userId, currentPassword, newPassword);
     res.json({ ok: true });
   } catch (err) {
