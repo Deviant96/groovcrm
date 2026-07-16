@@ -112,47 +112,6 @@ function openExternal(url: string | null) {
     </div>
 
     <template v-else-if="prospect">
-      <div class="grid gap-4 lg:grid-cols-2">
-        <section class="gc-card p-5 space-y-4">
-          <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Business Information</h2>
-          <InlineEdit :model-value="prospect.companyName" label="Company" @save="(v) => saveField({ companyName: v })" />
-          <InlineEdit :model-value="prospect.instagramHandle" label="Instagram" @save="(v) => saveField({ instagramHandle: v })" />
-          <InlineEdit :model-value="prospect.website" label="Website" @save="(v) => saveField({ website: v })" />
-          <InlineEdit :model-value="prospect.phoneNumber" label="Phone" @save="(v) => saveField({ phoneNumber: v })" />
-          <InlineEdit :model-value="prospect.sourceUrl" label="Source URL" @save="(v) => saveField({ sourceUrl: v })" />
-          <InlineEdit :model-value="prospect.score" label="Score" type="number" @save="(v) => saveField({ score: v })" />
-          <InlineEdit :model-value="prospect.hasWebsite" label="Has Website" type="boolean" @save="(v) => saveField({ hasWebsite: v })" />
-          <InlineEdit
-            :model-value="prospect.status"
-            label="Status"
-            type="select"
-            :options="STATUS_OPTIONS"
-            @save="(v) => saveField({ status: v })"
-          />
-          <InlineEdit :model-value="prospect.followUpDate" label="Follow Up" type="date" @save="(v) => saveField({ followUpDate: v })" />
-          <InlineEdit :model-value="prospect.lastContactDate" label="Last Contact" type="date" @save="(v) => saveField({ lastContactDate: v })" />
-          <InlineEdit :model-value="prospect.notes" label="Summary notes" type="textarea" @save="(v) => saveField({ notes: v })" />
-        </section>
-
-        <section class="gc-card p-5">
-          <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">Timeline</h2>
-          <div v-if="!timeline.length" class="rounded-xl border border-dashed border-gray-200 px-4 py-10 text-center text-sm text-gray-500">
-            No activity yet
-          </div>
-          <ol v-else class="relative space-y-4 border-l border-gray-200 pl-4">
-            <li v-for="item in timeline" :key="item.id" class="relative">
-              <span
-                class="absolute -left-[1.35rem] top-1.5 h-2.5 w-2.5 rounded-full"
-                :class="item.kind === 'note' ? 'bg-green-500' : 'bg-gray-300'"
-              />
-              <div class="text-xs text-gray-500">{{ formatDateTime(item.at) }}</div>
-              <div class="font-medium text-sm">{{ item.title }}</div>
-              <div v-if="item.body" class="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{{ item.body }}</div>
-            </li>
-          </ol>
-        </section>
-      </div>
-
       <section class="gc-card p-4">
         <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">Quick Actions</h2>
         <div class="flex flex-wrap gap-2">
@@ -202,6 +161,47 @@ function openExternal(url: string | null) {
           />
         </div>
       </section>
+
+      <div class="grid gap-4 lg:grid-cols-2">
+        <section class="gc-card p-5 space-y-4">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Business Information</h2>
+          <InlineEdit :model-value="prospect.companyName" label="Company" @save="(v) => saveField({ companyName: v })" />
+          <InlineEdit :model-value="prospect.instagramHandle" label="Instagram" @save="(v) => saveField({ instagramHandle: v })" />
+          <InlineEdit :model-value="prospect.website" label="Website" @save="(v) => saveField({ website: v })" />
+          <InlineEdit :model-value="prospect.phoneNumber" label="Phone" @save="(v) => saveField({ phoneNumber: v })" />
+          <InlineEdit :model-value="prospect.sourceUrl" label="Source URL" @save="(v) => saveField({ sourceUrl: v })" />
+          <InlineEdit :model-value="prospect.score" label="Score" type="number" @save="(v) => saveField({ score: v })" />
+          <InlineEdit :model-value="prospect.hasWebsite" label="Has Website" type="boolean" @save="(v) => saveField({ hasWebsite: v })" />
+          <InlineEdit
+            :model-value="prospect.status"
+            label="Status"
+            type="select"
+            :options="STATUS_OPTIONS"
+            @save="(v) => saveField({ status: v })"
+          />
+          <InlineEdit :model-value="prospect.followUpDate" label="Follow Up" type="date" @save="(v) => saveField({ followUpDate: v })" />
+          <InlineEdit :model-value="prospect.lastContactDate" label="Last Contact" type="date" @save="(v) => saveField({ lastContactDate: v })" />
+          <InlineEdit :model-value="prospect.notes" label="Summary notes" type="textarea" @save="(v) => saveField({ notes: v })" />
+        </section>
+
+        <section class="gc-card p-5">
+          <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">Timeline</h2>
+          <div v-if="!timeline.length" class="rounded-xl border border-dashed border-gray-200 px-4 py-10 text-center text-sm text-gray-500">
+            No activity yet
+          </div>
+          <ol v-else class="relative space-y-4 border-l border-gray-200 pl-4">
+            <li v-for="item in timeline" :key="item.id" class="relative">
+              <span
+                class="absolute -left-[1.35rem] top-1.5 h-2.5 w-2.5 rounded-full"
+                :class="item.kind === 'note' ? 'bg-green-500' : 'bg-gray-300'"
+              />
+              <div class="text-xs text-gray-500">{{ formatDateTime(item.at) }}</div>
+              <div class="font-medium text-sm">{{ item.title }}</div>
+              <div v-if="item.body" class="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{{ item.body }}</div>
+            </li>
+          </ol>
+        </section>
+      </div>
     </template>
 
     <Dialog v-model:visible="noteOpen" header="Add note" modal class="w-full max-w-md">
