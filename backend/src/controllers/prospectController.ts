@@ -3,7 +3,7 @@ import * as prospectService from '../services/prospectService.js';
 
 export async function list(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await prospectService.listProspects(req.query as never);
+    const result = await prospectService.listProspects((res.locals.validatedQuery ?? req.query) as never);
     res.json(result);
   } catch (err) {
     next(err);

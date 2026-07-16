@@ -12,6 +12,7 @@ import templateRoutes, { whatsappRouter } from './routes/templateRoutes.js';
 import importRoutes, { exportRouter } from './routes/importExportRoutes.js';
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(helmet());
 app.use(
