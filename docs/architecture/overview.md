@@ -6,10 +6,10 @@ GroovCRM is a monorepo personal CRM for prospect management and manual WhatsApp 
 
 ```
 Browser
-  → Apache (crm.miretazam.com)
-      → /        Frontend (Vue SPA via nginx)
-      → /api/*   Backend (Express + Prisma)
-                    → PostgreSQL
+  → Host Apache (crm.miretazam.com :80/:443)
+      → /api/*   Backend container (127.0.0.1:3000)
+      → /        Frontend container (127.0.0.1:8081)
+                    → PostgreSQL (Docker network)
 ```
 
 ## Packages
@@ -18,7 +18,7 @@ Browser
 |------|------|
 | `frontend/` | Vue 3 + Vite + TypeScript + Pinia + PrimeVue + Tailwind |
 | `backend/` | Express + TypeScript + Prisma + JWT auth |
-| `apache/` | Reverse proxy vhost for production |
+| `apache/` | Host Apache vhost for VPS reverse proxy |
 | `docs/` | Product and technical documentation |
 
 ## Backend layers

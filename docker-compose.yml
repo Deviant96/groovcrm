@@ -13,8 +13,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    # Bind Postgres to localhost only (optional host access for backups/migrations).
     ports:
-      - '${POSTGRES_PORT:-5432}:5432'
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
 
   backend:
     build:
@@ -37,6 +38,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # Exposed on localhost for the VPS host Apache reverse proxy.
+    ports:
+      - '127.0.0.1:${BACKEND_HOST_PORT:-3000}:3000'
 
   frontend:
     build:
@@ -45,18 +49,9 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-
-  apache:
-    image: httpd:2.4-alpine
-    restart: unless-stopped
+    # Exposed on localhost for the VPS host Apache reverse proxy.
     ports:
-      - '${HTTP_PORT:-80}:80'
-    volumes:
-      - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
-      - ./apache/crm.miretazam.com.conf:/usr/local/apache2/conf/extra/crm.miretazam.com.conf:ro
-    depends_on:
-      - frontend
-      - backend
+      - '127.0.0.1:${FRONTEND_HOST_PORT:-8081}:80'
 
 volumes:
   pgdata:

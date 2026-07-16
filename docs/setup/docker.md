@@ -2,14 +2,15 @@
 
 Target host: **crm.miretazam.com**
 
+Production uses **host Apache** on the VPS (port 80/443). Docker runs only the app stack; no Apache container.
+
 ## Services
 
 | Service | Image / build | Role |
 |---------|---------------|------|
-| `db` | postgres:16-alpine | Persistent volume `pgdata` |
-| `backend` | `./backend` | API + migrate + seed on start |
-| `frontend` | `./frontend` | Built SPA served by nginx |
-| `apache` | httpd:2.4-alpine | Reverse proxy on port 80 |
+| `db` | postgres:16-alpine | Persistent volume `pgdata` (localhost:5432) |
+| `backend` | `./backend` | API + migrate + seed on start (localhost:3000) |
+| `frontend` | `./frontend` | Built SPA via nginx (localhost:8081) |
 
 ## Steps
 
@@ -33,14 +34,23 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-4. Point DNS `crm.miretazam.com` at the host. Terminate TLS at your edge (Laragon / Cloudflare / certbot) and forward HTTP to the Apache container, or add TLS vhosts as needed.
+4. Install the host Apache vhost from [`apache/crm.miretazam.com.conf`](../../apache/crm.miretazam.com.conf):
 
-## Apache routing
+```bash
+sudo cp apache/crm.miretazam.com.conf /etc/apache2/sites-available/
+sudo a2enmod proxy proxy_http headers
+sudo a2ensite crm.miretazam.com
+sudo systemctl reload apache2
+```
 
-Configured in [`apache/crm.miretazam.com.conf`](../../apache/crm.miretazam.com.conf):
+5. Point DNS `crm.miretazam.com` at the VPS and add TLS (e.g. Certbot on host Apache).
 
-- `/api` → `backend:3000`
-- `/` → `frontend:80` (SPA)
+## Host Apache routing
+
+- `/api` → `http://127.0.0.1:3000/api` (backend)
+- `/` → `http://127.0.0.1:8081/` (frontend SPA)
+
+Override ports via `BACKEND_HOST_PORT` and `FRONTEND_HOST_PORT` in `.env` if needed.
 
 ## Persistence
 

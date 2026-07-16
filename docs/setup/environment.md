@@ -24,5 +24,6 @@
 | `POSTGRES_USER` | DB user |
 | `POSTGRES_PASSWORD` | DB password |
 | `POSTGRES_DB` | Database name |
-| `POSTGRES_PORT` | Host port mapping for Postgres |
-| `HTTP_PORT` | Host port for Apache |
+| `POSTGRES_PORT` | Host localhost port for Postgres (default `5432`) |
+| `BACKEND_HOST_PORT` | Host localhost port for API (default `3000`; must match Apache vhost) |
+| `FRONTEND_HOST_PORT` | Host localhost port for SPA (default `8081`; must match Apache vhost) |
