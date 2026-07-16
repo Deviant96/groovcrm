@@ -11,7 +11,7 @@ import MultiSelect from 'primevue/multiselect';
 import Skeleton from 'primevue/skeleton';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
-import { useDebounceFn } from '@vueuse/core';
+import { useDebounceFn, useLocalStorage } from '@vueuse/core';
 import { useProspectStore } from '@/stores/prospects';
 import { exportApi, prospectApi } from '@/services';
 import { STATUS_LABELS, STATUS_OPTIONS, type Prospect, type ProspectStatus } from '@/types';
@@ -43,7 +43,13 @@ const columnOptions = [
   { field: 'lastContactDate', header: 'Last Contact' },
 ];
 
-const visibleColumns = ref(columnOptions.map((c) => c.field));
+const defaultVisibleColumns = columnOptions.map((c) => c.field);
+const validColumnFields = new Set(defaultVisibleColumns);
+const visibleColumns = useLocalStorage<string[]>('gc_prospect_visible_columns', [...defaultVisibleColumns]);
+visibleColumns.value = visibleColumns.value.filter((f) => validColumnFields.has(f));
+if (!visibleColumns.value.length) {
+  visibleColumns.value = [...defaultVisibleColumns];
+}
 const selected = ref<Prospect[]>([]);
 
 const yesNo = [
