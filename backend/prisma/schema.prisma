@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProspectStatus {
+  NEW
+  SENT
+  REPLIED
+  INTERESTED
+  MEETING
+  PROPOSAL
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum TemplateCategory {
+  WEBSITE_OFFER
+  SEO
+  BRANDING
+  MAINTENANCE
+  FOLLOW_UP
+  GENERAL
+}
+
+enum ActivityType {
+  IMPORTED
+  EDITED
+  STATUS_CHANGED
+  MESSAGE_GENERATED
+  FOLLOW_UP_CHANGED
+  TEMPLATE_USED
+  NOTE_ADDED
+}
+
+model User {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  passwordHash String         @map("password_hash")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+model Prospect {
+  id              String         @id @default(cuid())
+  companyName     String         @map("company_name")
+  instagramHandle String?        @map("instagram_handle")
+  website         String?
+  phoneNumber     String?        @map("phone_number")
+  sourceUrl       String?        @map("source_url")
+  score           Int            @default(0)
+  hasWebsite      Boolean        @default(false) @map("has_website")
+  status          ProspectStatus @default(NEW)
+  followUpDate    DateTime?      @map("follow_up_date")
+  lastContactDate DateTime?      @map("last_contact_date")
+  notes           String?        @db.Text
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  noteEntries     Note[]
+  activities      Activity[]
+
+  @@index([companyName])
+  @@index([instagramHandle])
+  @@index([website])
+  @@index([phoneNumber])
+  @@index([status])
+  @@index([followUpDate])
+  @@index([score])
+  @@map("prospects")
+}
+
+model Template {
+  id        String           @id @default(cuid())
+  name      String
+  category  TemplateCategory @default(GENERAL)
+  message   String           @db.Text
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@map("templates")
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  prospectId String   @map("prospect_id")
+  content    String   @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  @@index([prospectId])
+  @@map("notes")
+}
+
+model Activity {
+  id         String       @id @default(cuid())
+  prospectId String       @map("prospect_id")
+  type       ActivityType
+  metadata   Json?
+  createdAt  DateTime     @default(now()) @map("created_at")
+  prospect   Prospect     @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  @@index([prospectId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("activities")
+}

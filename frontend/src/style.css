@@ -1,0 +1,75 @@
+@import 'tailwindcss';
+@import 'primeicons/primeicons.css';
+
+:root {
+  --gc-green: #16a34a;
+  --gc-green-dark: #15803d;
+  --gc-green-soft: #dcfce7;
+  --gc-bg: #fafafa;
+  --gc-surface: #ffffff;
+  --gc-border: #e5e7eb;
+  --gc-text: #111827;
+  --gc-muted: #6b7280;
+  --gc-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --gc-radius: 12px;
+  font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  color: var(--gc-text);
+  background: var(--gc-bg);
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #dcfce7 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #f0fdf4 0%, transparent 50%),
+    var(--gc-bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.gc-card {
+  background: var(--gc-surface);
+  border: 1px solid var(--gc-border);
+  border-radius: var(--gc-radius);
+  box-shadow: var(--gc-shadow);
+}
+
+.gc-page {
+  animation: gc-fade-in 0.25s ease;
+}
+
+@keyframes gc-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background: #f8fafc;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gc-muted);
+}
+
+.p-datatable .p-datatable-tbody > tr {
+  transition: background 0.15s ease;
+  cursor: pointer;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: #f0fdf4 !important;
+}
