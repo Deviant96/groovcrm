@@ -8,10 +8,10 @@ Vhost file: [`apache/crm.miretazam.com.conf`](../../apache/crm.miretazam.com.con
 
 | Path | Upstream |
 |------|----------|
-| `/api` | `http://127.0.0.1:3000/api` (backend) |
+| `/api` | `http://127.0.0.1:3001/api` (backend) |
 | `/` | `http://127.0.0.1:8081/` (frontend nginx) |
 
-Ports must match `BACKEND_HOST_PORT` and `FRONTEND_HOST_PORT` in `.env` (defaults: 3000 and 8081).
+Ports must match `BACKEND_HOST_PORT` and `FRONTEND_HOST_PORT` in `.env` (defaults: 3001 and 8081).
 
 ## Install on Ubuntu/Debian
 

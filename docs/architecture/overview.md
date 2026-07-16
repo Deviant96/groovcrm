@@ -7,7 +7,7 @@ GroovCRM is a monorepo personal CRM for prospect management and manual WhatsApp 
 ```
 Browser
   → Host Apache (crm.miretazam.com :80/:443)
-      → /api/*   Backend container (127.0.0.1:3000)
+      → /api/*   Backend container (127.0.0.1:3001)
       → /        Frontend container (127.0.0.1:8081)
                     → PostgreSQL (Docker network)
 ```

@@ -9,7 +9,7 @@ Production uses **host Apache** on the VPS (port 80/443). Docker runs only the a
 | Service | Image / build | Role |
 |---------|---------------|------|
 | `db` | postgres:16-alpine | Persistent volume `pgdata` (localhost:5432) |
-| `backend` | `./backend` | API + migrate + seed on start (localhost:3000) |
+| `backend` | `./backend` | API + migrate + seed on start (localhost:3001) |
 | `frontend` | `./frontend` | Built SPA via nginx (localhost:8081) |
 
 ## Steps
@@ -47,10 +47,10 @@ sudo systemctl reload apache2
 
 ## Host Apache routing
 
-- `/api` → `http://127.0.0.1:3000/api` (backend)
+- `/api` → `http://127.0.0.1:3001/api` (backend; default `BACKEND_HOST_PORT`)
 - `/` → `http://127.0.0.1:8081/` (frontend SPA)
 
-Override ports via `BACKEND_HOST_PORT` and `FRONTEND_HOST_PORT` in `.env` if needed.
+Override ports via `BACKEND_HOST_PORT` and `FRONTEND_HOST_PORT` in `.env` if needed. Keep host Apache `ProxyPass` in sync.
 
 ## Persistence
 
