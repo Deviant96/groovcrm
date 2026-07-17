@@ -67,6 +67,49 @@ function normalizeProspectData(input: ProspectInput) {
   };
 }
 
+/** Build a Prisma update payload containing only fields present in the request. */
+function buildPartialUpdateData(input: Partial<ProspectInput>): Prisma.ProspectUpdateInput {
+  const data: Prisma.ProspectUpdateInput = {};
+
+  if (input.companyName !== undefined) {
+    data.companyName = input.companyName.trim();
+  }
+  if (input.instagramHandle !== undefined) {
+    data.instagramHandle = normalizeInstagram(input.instagramHandle);
+  }
+  if (input.website !== undefined) {
+    data.website = normalizeWebsite(input.website);
+  }
+  if (input.phoneNumber !== undefined) {
+    data.phoneNumber = normalizePhone(input.phoneNumber) ?? (input.phoneNumber?.trim() || null);
+  }
+  if (input.sourceUrl !== undefined) {
+    data.sourceUrl = input.sourceUrl?.trim() || null;
+  }
+  if (input.score !== undefined) {
+    data.score = input.score;
+  }
+  if (input.hasWebsite !== undefined) {
+    data.hasWebsite = input.hasWebsite;
+  } else if (input.website !== undefined) {
+    data.hasWebsite = Boolean(normalizeWebsite(input.website));
+  }
+  if (input.status !== undefined) {
+    data.status = input.status;
+  }
+  if (input.followUpDate !== undefined) {
+    data.followUpDate = input.followUpDate ? new Date(input.followUpDate) : null;
+  }
+  if (input.lastContactDate !== undefined) {
+    data.lastContactDate = input.lastContactDate ? new Date(input.lastContactDate) : null;
+  }
+  if (input.notes !== undefined) {
+    data.notes = input.notes;
+  }
+
+  return data;
+}
+
 function buildWhere(query: ListQuery): Prisma.ProspectWhereInput {
   const where: Prisma.ProspectWhereInput = {};
   const and: Prisma.ProspectWhereInput[] = [];
@@ -164,10 +207,7 @@ export async function createProspect(input: ProspectInput) {
 
 export async function updateProspect(id: string, input: Partial<ProspectInput>) {
   const existing = assertFound(await prisma.prospect.findUnique({ where: { id } }), 'Prospect not found');
-  const data = normalizeProspectData({
-    companyName: input.companyName ?? existing.companyName,
-    ...input,
-  });
+  const data = buildPartialUpdateData(input);
 
   const activities: Prisma.ActivityCreateWithoutProspectInput[] = [
     { type: ActivityType.EDITED, metadata: { fields: Object.keys(input) } },
