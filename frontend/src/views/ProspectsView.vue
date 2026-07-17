@@ -23,14 +23,23 @@ const router = useRouter();
 const toast = useToast();
 const confirm = useConfirm();
 
-const search = ref('');
-const status = ref<ProspectStatus | null>(null);
-const hasWebsite = ref<boolean | null>(null);
-const hasPhone = ref<boolean | null>(null);
-const followUp = ref<string | null>(null);
+const search = useLocalStorage('gc_prospect_filter_search', '');
+const status = useLocalStorage<ProspectStatus | null>('gc_prospect_filter_status', null);
+const hasWebsite = useLocalStorage<boolean | null>('gc_prospect_filter_has_website', null);
+const hasPhone = useLocalStorage<boolean | null>('gc_prospect_filter_has_phone', null);
+const followUp = useLocalStorage<string | null>('gc_prospect_filter_follow_up', null);
 const bulkStatus = ref<ProspectStatus | null>(null);
 const waProspect = ref<Prospect | null>(null);
 const waVisible = ref(false);
+
+const validStatuses = new Set(STATUS_OPTIONS.map((o) => o.value));
+if (status.value && !validStatuses.has(status.value)) {
+  status.value = null;
+}
+const validFollowUps = new Set(['today', 'overdue', 'upcoming', 'none']);
+if (followUp.value && !validFollowUps.has(followUp.value)) {
+  followUp.value = null;
+}
 
 const columnOptions = [
   { field: 'companyName', header: 'Company' },
