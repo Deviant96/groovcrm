@@ -26,6 +26,7 @@ const confirm = useConfirm();
 const search = ref('');
 const status = ref<ProspectStatus | null>(null);
 const hasWebsite = ref<boolean | null>(null);
+const hasPhone = ref<boolean | null>(null);
 const followUp = ref<string | null>(null);
 const bulkStatus = ref<ProspectStatus | null>(null);
 const waProspect = ref<Prospect | null>(null);
@@ -52,18 +53,24 @@ if (!visibleColumns.value.length) {
 }
 const selected = ref<Prospect[]>([]);
 
-const yesNo = [
-  { label: 'Any', value: null },
-  { label: 'Yes', value: true },
-  { label: 'No', value: false },
+const websiteOptions = [
+  { label: 'Any website status', value: null },
+  { label: 'Has website', value: true },
+  { label: 'No website', value: false },
+];
+
+const phoneOptions = [
+  { label: 'Any phone status', value: null },
+  { label: 'Has phone number', value: true },
+  { label: 'No phone number', value: false },
 ];
 
 const followUpOptions = [
-  { label: 'Any', value: null },
-  { label: 'Today', value: 'today' },
-  { label: 'Overdue', value: 'overdue' },
-  { label: 'Upcoming', value: 'upcoming' },
-  { label: 'None', value: 'none' },
+  { label: 'Any follow-up', value: null },
+  { label: 'Follow-up today', value: 'today' },
+  { label: 'Overdue follow-up', value: 'overdue' },
+  { label: 'Upcoming follow-up', value: 'upcoming' },
+  { label: 'No follow-up', value: 'none' },
 ];
 
 const first = computed({
@@ -79,6 +86,7 @@ async function load(overrides = {}) {
     search: search.value || undefined,
     status: status.value || undefined,
     hasWebsite: hasWebsite.value ?? undefined,
+    hasPhone: hasPhone.value ?? undefined,
     followUp: (followUp.value as 'today' | 'overdue' | 'upcoming' | 'none') || undefined,
     ...overrides,
   });
@@ -88,7 +96,7 @@ const debouncedSearch = useDebounceFn(() => load({ page: 1 }), 250);
 
 onMounted(() => load());
 
-watch([status, hasWebsite, followUp], () => load({ page: 1 }));
+watch([status, hasWebsite, hasPhone, followUp], () => load({ page: 1 }));
 watch(search, () => debouncedSearch());
 
 function onSort(e: { sortField?: string | ((item: unknown) => string) | undefined; sortOrder?: number | null | undefined }) {
@@ -166,8 +174,9 @@ function openWhatsApp(p: Prospect, e: Event) {
           <InputText v-model="search" placeholder="Search anything…" class="w-full" />
         </span>
         <Select v-model="status" :options="[{ label: 'All statuses', value: null }, ...STATUS_OPTIONS]" option-label="label" option-value="value" placeholder="Status" class="min-w-[160px]" show-clear />
-        <Select v-model="hasWebsite" :options="yesNo" option-label="label" option-value="value" placeholder="Has website" class="min-w-[140px]" />
-        <Select v-model="followUp" :options="followUpOptions" option-label="label" option-value="value" placeholder="Follow up" class="min-w-[140px]" />
+        <Select v-model="hasWebsite" :options="websiteOptions" option-label="label" option-value="value" placeholder="Website" class="min-w-[170px]" />
+        <Select v-model="hasPhone" :options="phoneOptions" option-label="label" option-value="value" placeholder="Phone" class="min-w-[180px]" />
+        <Select v-model="followUp" :options="followUpOptions" option-label="label" option-value="value" placeholder="Follow-up" class="min-w-[180px]" />
         <MultiSelect
           v-model="visibleColumns"
           :options="columnOptions"

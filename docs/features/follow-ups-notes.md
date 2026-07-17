@@ -7,7 +7,7 @@ Each prospect may have `follow_up_date`. Home shows:
 - Today's follow-ups
 - Overdue follow-ups
 
-Filters on the prospects table also support today / overdue / upcoming / none.
+Filters on the prospects table also support today / overdue / upcoming / none (labels: “Follow-up today”, “Overdue follow-up”, etc.).
 
 ## Notes
 
