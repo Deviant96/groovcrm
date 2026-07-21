@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IG Lead Finder — GroovCRM</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7f5;
+        --card: #ffffff;
+        --ink: #0f172a;
+        --muted: #64748b;
+        --line: #dbe3dc;
+        --accent: #15803d;
+        --accent-soft: #dcfce7;
+        --danger: #b91c1c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background:
+          radial-gradient(circle at top right, rgba(21, 128, 61, 0.12), transparent 40%),
+          linear-gradient(180deg, #eef5f0, var(--bg));
+        color: var(--ink);
+      }
+
+      main {
+        width: min(440px, calc(100% - 32px));
+        margin: 48px auto;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 28px;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 6px;
+        font-size: 1.35rem;
+      }
+
+      p {
+        margin: 0 0 22px;
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.5;
+      }
+
+      label {
+        display: block;
+        margin: 0 0 6px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      input {
+        width: 100%;
+        margin-bottom: 14px;
+        padding: 11px 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        font: inherit;
+        background: #fff;
+      }
+
+      input:focus {
+        outline: 2px solid rgba(21, 128, 61, 0.25);
+        border-color: var(--accent);
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      button {
+        flex: 1;
+        border: none;
+        border-radius: 10px;
+        padding: 11px 14px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button.primary {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      button.secondary {
+        background: #e2e8f0;
+        color: var(--ink);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .status {
+        margin-top: 16px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #f8fafc;
+        border: 1px solid var(--line);
+        font-size: 0.9rem;
+        line-height: 1.45;
+      }
+
+      .status.ok {
+        background: var(--accent-soft);
+        border-color: #86efac;
+        color: #14532d;
+      }
+
+      .status.err {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: var(--danger);
+      }
+
+      .hint {
+        margin-top: 18px;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.78rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Connect to GroovCRM</h1>
+      <p>
+        Sign in once. The Instagram lead panel will save prospects directly into your CRM —
+        no Google Sheets required.
+      </p>
+
+      <label for="apiBaseUrl">API base URL</label>
+      <input id="apiBaseUrl" type="url" placeholder="https://crm.miretazam.com/api" />
+
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username" />
+
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" />
+
+      <div class="row">
+        <button id="loginBtn" class="primary" type="button">Sign in</button>
+        <button id="logoutBtn" class="secondary" type="button">Sign out</button>
+      </div>
+
+      <div id="status" class="status">Checking session…</div>
+      <p class="hint">
+        Local default: <code>http://localhost:3000/api</code><br />
+        Production default: <code>https://crm.miretazam.com/api</code>
+      </p>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>

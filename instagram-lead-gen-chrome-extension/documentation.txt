@@ -1,0 +1,64 @@
+🧠 Purpose
+
+This extension extracts Instagram profile data and sends qualified leads to Google Sheets.
+
+⚙️ System Architecture
+Instagram Page
+   ↓
+Chrome Content Script
+   ↓
+Data Extraction + Scoring
+   ↓
+Widget UI (Manual Control)
+   ↓
+POST → Google Apps Script
+   ↓
+Google Sheets (CRM)
+
+📥 Data Collected
+handle (username)
+name
+website (if exists)
+links (all found links)
+hasWebsite (boolean)
+score (lead score)
+sourceUrl
+
+🧮 Lead Scoring Logic
+No website → +50
+Has links → +10
+Has name → +5
+Linktree → -10
+
+🧪 Duplicate Detection
+On load, extension calls GET WEBHOOK_URL
+Returns all handles
+Compared locally before saving
+
+🔘 User Flow
+Open Instagram profile
+Widget appears
+Shows:
+Website status
+Links
+Score
+Exists or not
+Click Save Lead
+Data sent to Google Sheets
+
+⚠️ Known Limitations
+Instagram DOM may change
+Link detection is heuristic-based
+GET endpoint loads full dataset (not optimized for very large datasets)
+
+🚀 Future Improvements
+Cache handles locally
+Pagination or indexed lookup in Apps Script
+Better UI (React or Shadow DOM)
+CRM sync (Airtable, Notion)
+Auto-enrichment (Clearbit, Hunter)
+
+🔐 Security Notes
+Webhook URL is public
+No authentication layer (can be added via token)
+Do not expose sensitive data
