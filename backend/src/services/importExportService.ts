@@ -220,6 +220,7 @@ export async function exportCsv() {
     source_url: p.sourceUrl ?? '',
     score: p.score,
     has_website: p.hasWebsite ? 'true' : 'false',
+    visited: p.visited ? 'true' : 'false',
     status: p.status,
     follow_up_date: p.followUpDate?.toISOString() ?? '',
     last_contact_date: p.lastContactDate?.toISOString() ?? '',

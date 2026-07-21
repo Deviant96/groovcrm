@@ -17,9 +17,9 @@ id, name, email (unique), password_hash, created_at, updated_at
 id, user_id → users, token_hash, expires_at, created_at
 
 ### prospects
-id, company_name, instagram_handle, website, phone_number, source_url, score, has_website, status, follow_up_date, last_contact_date, notes, created_at, updated_at
+id, company_name, instagram_handle, website, phone_number, source_url, score, has_website, visited, status, follow_up_date, last_contact_date, notes, created_at, updated_at
 
-Indexed on company, Instagram, website, phone, status, follow_up_date, score.
+Indexed on company, Instagram, website, phone, status, follow_up_date, score, visited.
 
 ### templates
 id, name, category, message, created_at, updated_at

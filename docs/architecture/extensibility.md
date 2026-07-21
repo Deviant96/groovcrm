@@ -10,6 +10,8 @@ Add an `integrations/` or `ai/` service module that consumes `Prospect` + `Templ
 
 Keep outbound adapters behind interfaces (WhatsApp Business, Google Sheets, n8n webhooks). Controllers should not call third-party SDKs directly.
 
+**Instagram lead extension** — inbound integration via `POST /api/prospects/instagram-lead` and `GET /api/prospects/lead-index`. Auth uses the same JWT login/refresh as the SPA; tokens are stored in the extension.
+
 ## CRM enhancements
 
 - Kanban: reuse `status` enum as columns; no schema change required for a board view

@@ -26,6 +26,12 @@ export function normalizeWebsite(url: string | null | undefined): string | null 
 
 export function normalizeInstagram(handle: string | null | undefined): string | null {
   if (!handle) return null;
-  const cleaned = handle.trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/$/, '');
+  const cleaned = handle
+    .trim()
+    .replace(/^@/, '')
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')
+    .replace(/\/$/, '')
+    .split(/[/?#]/)[0]
+    ?.toLowerCase();
   return cleaned || null;
 }

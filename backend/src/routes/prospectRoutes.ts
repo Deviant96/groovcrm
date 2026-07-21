@@ -4,6 +4,7 @@ import { validateBody } from '../middleware/validate.js';
 import {
   bulkDeleteSchema,
   bulkStatusSchema,
+  instagramLeadUpsertSchema,
   noteCreateSchema,
   prospectCreateSchema,
   prospectUpdateSchema,
@@ -14,6 +15,8 @@ const router = Router();
 router.get('/follow-ups', prospectController.followUps);
 router.get('/stats', prospectController.stats);
 router.get('/search', prospectController.search);
+router.get('/lead-index', prospectController.leadIndex);
+router.post('/instagram-lead', validateBody(instagramLeadUpsertSchema), prospectController.upsertInstagramLead);
 router.get('/', prospectController.list);
 router.post('/', validateBody(prospectCreateSchema), prospectController.create);
 router.post('/bulk/status', validateBody(bulkStatusSchema), prospectController.bulkStatus);

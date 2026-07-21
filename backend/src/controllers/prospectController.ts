@@ -118,3 +118,25 @@ export async function search(req: Request, res: Response, next: NextFunction) {
     next(err);
   }
 }
+
+export async function leadIndex(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await prospectService.getLeadIndex();
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function upsertInstagramLead(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await prospectService.upsertInstagramLead(validatedBody(req, res));
+    res.status(result.updated ? 200 : 201).json({
+      status: 'success',
+      updated: result.updated,
+      prospect: result.prospect,
+    });
+  } catch (err) {
+    next(err);
+  }
+}

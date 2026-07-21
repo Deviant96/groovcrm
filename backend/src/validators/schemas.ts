@@ -19,6 +19,7 @@ export const prospectCreateSchema = z.object({
   sourceUrl: z.string().optional().nullable(),
   score: z.number().int().min(0).max(100).optional().default(0),
   hasWebsite: z.boolean().optional(),
+  visited: z.boolean().optional(),
   status: z.nativeEnum(ProspectStatus).optional(),
   followUpDate: z.string().datetime().optional().nullable(),
   lastContactDate: z.string().datetime().optional().nullable(),
@@ -26,6 +27,19 @@ export const prospectCreateSchema = z.object({
 });
 
 export const prospectUpdateSchema = prospectCreateSchema.partial();
+
+/** Payload from the Instagram lead Chrome extension (upsert by handle). */
+export const instagramLeadUpsertSchema = z.object({
+  handle: z.string().min(1),
+  name: z.string().optional().nullable(),
+  website: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  links: z.array(z.string()).optional(),
+  hasWebsite: z.boolean().optional(),
+  score: z.number().int().min(0).max(100).optional(),
+  sourceUrl: z.string().optional().nullable(),
+  visited: z.boolean().optional(),
+});
 
 export const prospectQuerySchema = z.object({
   search: z.string().optional(),

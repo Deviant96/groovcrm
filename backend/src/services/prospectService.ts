@@ -11,6 +11,7 @@ type ProspectInput = {
   sourceUrl?: string | null;
   score?: number;
   hasWebsite?: boolean;
+  visited?: boolean;
   status?: ProspectStatus;
   followUpDate?: string | null;
   lastContactDate?: string | null;
@@ -56,6 +57,7 @@ function normalizeProspectData(input: ProspectInput) {
     sourceUrl: input.sourceUrl?.trim() || null,
     score: input.score ?? 0,
     hasWebsite,
+    visited: input.visited ?? false,
     status: input.status,
     followUpDate: input.followUpDate ? new Date(input.followUpDate) : input.followUpDate === null ? null : undefined,
     lastContactDate: input.lastContactDate
@@ -93,6 +95,9 @@ function buildPartialUpdateData(input: Partial<ProspectInput>): Prisma.ProspectU
     data.hasWebsite = input.hasWebsite;
   } else if (input.website !== undefined) {
     data.hasWebsite = Boolean(normalizeWebsite(input.website));
+  }
+  if (input.visited !== undefined) {
+    data.visited = input.visited;
   }
   if (input.status !== undefined) {
     data.status = input.status;
@@ -343,4 +348,119 @@ export async function searchProspects(q: string, limit = 20) {
     take: limit,
     orderBy: { updatedAt: 'desc' },
   });
+}
+
+/** Lightweight index for the Instagram Chrome extension (duplicate + visited checks). */
+export async function getLeadIndex() {
+  const rows = await prisma.prospect.findMany({
+    where: { instagramHandle: { not: null } },
+    select: {
+      id: true,
+      instagramHandle: true,
+      website: true,
+      phoneNumber: true,
+      visited: true,
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+
+  const byHandle = new Map<
+    string,
+    { id: string; handle: string; website: string; phone: string; visited: boolean }
+  >();
+
+  for (const row of rows) {
+    const handle = normalizeInstagram(row.instagramHandle);
+    if (!handle || byHandle.has(handle)) continue;
+    byHandle.set(handle, {
+      id: row.id,
+      handle,
+      website: row.website ?? '',
+      phone: row.phoneNumber ?? '',
+      visited: row.visited,
+    });
+  }
+
+  return { leads: [...byHandle.values()] };
+}
+
+type InstagramLeadInput = {
+  handle: string;
+  name?: string | null;
+  website?: string | null;
+  phone?: string | null;
+  links?: string[];
+  hasWebsite?: boolean;
+  score?: number;
+  sourceUrl?: string | null;
+  visited?: boolean;
+};
+
+/** Create or update a prospect from an Instagram extension lead payload. */
+export async function upsertInstagramLead(input: InstagramLeadInput) {
+  const handle = normalizeInstagram(input.handle);
+  if (!handle) {
+    throw new AppError(400, 'Instagram handle is required');
+  }
+
+  const companyName = (input.name?.trim() || handle).slice(0, 200);
+  const linksNote =
+    input.links && input.links.length
+      ? `IG links:\n${input.links.map((l) => `- ${l}`).join('\n')}`
+      : null;
+
+  const existing = await prisma.prospect.findFirst({
+    where: { instagramHandle: { equals: handle, mode: 'insensitive' } },
+  });
+
+  if (existing) {
+    const updateInput: Partial<ProspectInput> = {};
+    if (input.name?.trim()) updateInput.companyName = companyName;
+    updateInput.instagramHandle = handle;
+    if (input.website !== undefined) updateInput.website = input.website;
+    if (input.phone !== undefined) updateInput.phoneNumber = input.phone;
+    if (input.sourceUrl !== undefined) updateInput.sourceUrl = input.sourceUrl;
+    if (input.score !== undefined) updateInput.score = input.score;
+    if (input.hasWebsite !== undefined) updateInput.hasWebsite = input.hasWebsite;
+    if (input.visited !== undefined) updateInput.visited = input.visited;
+
+    const data = buildPartialUpdateData(updateInput);
+    const prospect = await prisma.prospect.update({
+      where: { id: existing.id },
+      data: {
+        ...data,
+        activities: {
+          create: {
+            type: ActivityType.EDITED,
+            metadata: { source: 'instagram-extension', fields: Object.keys(updateInput) },
+          },
+        },
+      },
+    });
+    return { prospect, updated: true };
+  }
+
+  const createData = normalizeProspectData({
+    companyName,
+    instagramHandle: handle,
+    website: input.website ?? null,
+    phoneNumber: input.phone ?? null,
+    sourceUrl: input.sourceUrl ?? null,
+    score: input.score ?? 0,
+    hasWebsite: input.hasWebsite,
+    visited: input.visited ?? false,
+    notes: linksNote,
+  });
+
+  const prospect = await prisma.prospect.create({
+    data: {
+      ...createData,
+      status: 'NEW',
+      activities: {
+        create: { type: ActivityType.IMPORTED, metadata: { source: 'instagram-extension' } },
+      },
+    },
+  });
+
+  return { prospect, updated: false };
 }
