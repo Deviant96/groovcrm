@@ -13,7 +13,7 @@ const router = useRouter();
 const route = useRoute();
 const toast = useToast();
 
-const email = ref('admin@groovcrm.local');
+const email = ref('');
 const password = ref('');
 const rememberMe = ref(true);
 const error = ref('');
