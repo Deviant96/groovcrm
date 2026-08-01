@@ -12,6 +12,8 @@ type ProspectInput = {
   score?: number;
   hasWebsite?: boolean;
   visited?: boolean;
+  favorite?: boolean;
+  category?: string | null;
   status?: ProspectStatus;
   followUpDate?: string | null;
   lastContactDate?: string | null;
@@ -28,6 +30,8 @@ type ListQuery = {
   hasInstagram?: boolean;
   hasPhone?: boolean;
   hasWebsiteUrl?: boolean;
+  favorite?: boolean;
+  category?: string;
   page: number;
   pageSize: number;
   sortBy: string;
@@ -58,6 +62,8 @@ function normalizeProspectData(input: ProspectInput) {
     score: input.score ?? 0,
     hasWebsite,
     visited: input.visited ?? false,
+    favorite: input.favorite ?? false,
+    category: input.category?.trim() || null,
     status: input.status,
     followUpDate: input.followUpDate ? new Date(input.followUpDate) : input.followUpDate === null ? null : undefined,
     lastContactDate: input.lastContactDate
@@ -98,6 +104,12 @@ function buildPartialUpdateData(input: Partial<ProspectInput>): Prisma.ProspectU
   }
   if (input.visited !== undefined) {
     data.visited = input.visited;
+  }
+  if (input.favorite !== undefined) {
+    data.favorite = input.favorite;
+  }
+  if (input.category !== undefined) {
+    data.category = input.category?.trim() || null;
   }
   if (input.status !== undefined) {
     data.status = input.status;
@@ -157,6 +169,10 @@ function buildWhere(query: ListQuery): Prisma.ProspectWhereInput {
   if (query.hasPhone === false) and.push({ OR: [{ phoneNumber: null }, { phoneNumber: '' }] });
   if (query.hasWebsiteUrl === true) and.push({ website: { not: null } });
   if (query.hasWebsiteUrl === false) and.push({ OR: [{ website: null }, { website: '' }] });
+  if (query.favorite !== undefined) where.favorite = query.favorite;
+  if (query.category?.trim()) {
+    where.category = { equals: query.category.trim(), mode: 'insensitive' };
+  }
 
   if (and.length) where.AND = and;
   return where;
@@ -360,17 +376,30 @@ export async function getLeadIndex() {
       website: true,
       phoneNumber: true,
       visited: true,
+      favorite: true,
+      category: true,
     },
     orderBy: { updatedAt: 'desc' },
   });
 
   const byHandle = new Map<
     string,
-    { id: string; handle: string; website: string; phone: string; visited: boolean }
+    {
+      id: string;
+      handle: string;
+      website: string;
+      phone: string;
+      visited: boolean;
+      favorite: boolean;
+      category: string;
+    }
   >();
+  const categories = new Set<string>();
 
   for (const row of rows) {
     const handle = normalizeInstagram(row.instagramHandle);
+    const category = (row.category || '').trim();
+    if (category) categories.add(category);
     if (!handle || byHandle.has(handle)) continue;
     byHandle.set(handle, {
       id: row.id,
@@ -378,10 +407,15 @@ export async function getLeadIndex() {
       website: row.website ?? '',
       phone: row.phoneNumber ?? '',
       visited: row.visited,
+      favorite: row.favorite,
+      category,
     });
   }
 
-  return { leads: [...byHandle.values()] };
+  return {
+    leads: [...byHandle.values()],
+    categories: [...categories].sort((a, b) => a.localeCompare(b)),
+  };
 }
 
 type InstagramLeadInput = {
@@ -394,6 +428,8 @@ type InstagramLeadInput = {
   score?: number;
   sourceUrl?: string | null;
   visited?: boolean;
+  favorite?: boolean;
+  category?: string | null;
 };
 
 /** Create or update a prospect from an Instagram extension lead payload. */
@@ -408,6 +444,8 @@ export async function upsertInstagramLead(input: InstagramLeadInput) {
     input.links && input.links.length
       ? `IG links:\n${input.links.map((l) => `- ${l}`).join('\n')}`
       : null;
+  const category =
+    input.category !== undefined ? (input.category?.trim() || null) : undefined;
 
   const existing = await prisma.prospect.findFirst({
     where: { instagramHandle: { equals: handle, mode: 'insensitive' } },
@@ -423,6 +461,8 @@ export async function upsertInstagramLead(input: InstagramLeadInput) {
     if (input.score !== undefined) updateInput.score = input.score;
     if (input.hasWebsite !== undefined) updateInput.hasWebsite = input.hasWebsite;
     if (input.visited !== undefined) updateInput.visited = input.visited;
+    if (input.favorite !== undefined) updateInput.favorite = input.favorite;
+    if (category !== undefined) updateInput.category = category;
 
     const data = buildPartialUpdateData(updateInput);
     const prospect = await prisma.prospect.update({
@@ -449,6 +489,8 @@ export async function upsertInstagramLead(input: InstagramLeadInput) {
     score: input.score ?? 0,
     hasWebsite: input.hasWebsite,
     visited: input.visited ?? false,
+    favorite: input.favorite ?? false,
+    category: category ?? null,
     notes: linksNote,
   });
 

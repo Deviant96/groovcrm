@@ -72,6 +72,8 @@ model Prospect {
   score           Int            @default(0)
   hasWebsite      Boolean        @default(false) @map("has_website")
   visited         Boolean        @default(false)
+  favorite        Boolean        @default(false)
+  category        String?
   status          ProspectStatus @default(NEW)
   followUpDate    DateTime?      @map("follow_up_date")
   lastContactDate DateTime?      @map("last_contact_date")
@@ -89,6 +91,8 @@ model Prospect {
   @@index([followUpDate])
   @@index([score])
   @@index([visited])
+  @@index([favorite])
+  @@index([category])
   @@map("prospects")
 }
 

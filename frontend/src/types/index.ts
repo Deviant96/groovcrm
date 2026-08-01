@@ -42,6 +42,8 @@ export interface Prospect {
   score: number;
   hasWebsite: boolean;
   visited: boolean;
+  favorite: boolean;
+  category: string | null;
   status: ProspectStatus;
   followUpDate: string | null;
   lastContactDate: string | null;

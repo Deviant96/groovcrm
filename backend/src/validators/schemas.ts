@@ -20,6 +20,8 @@ export const prospectCreateSchema = z.object({
   score: z.number().int().min(0).max(100).optional().default(0),
   hasWebsite: z.boolean().optional(),
   visited: z.boolean().optional(),
+  favorite: z.boolean().optional(),
+  category: z.string().trim().max(80).optional().nullable(),
   status: z.nativeEnum(ProspectStatus).optional(),
   followUpDate: z.string().datetime().optional().nullable(),
   lastContactDate: z.string().datetime().optional().nullable(),
@@ -39,6 +41,8 @@ export const instagramLeadUpsertSchema = z.object({
   score: z.number().int().min(0).max(100).optional(),
   sourceUrl: z.string().optional().nullable(),
   visited: z.boolean().optional(),
+  favorite: z.boolean().optional(),
+  category: z.string().trim().max(80).optional().nullable(),
 });
 
 export const prospectQuerySchema = z.object({
@@ -63,6 +67,11 @@ export const prospectQuerySchema = z.object({
     .enum(['true', 'false'])
     .optional()
     .transform((v) => (v === undefined ? undefined : v === 'true')),
+  favorite: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => (v === undefined ? undefined : v === 'true')),
+  category: z.string().optional(),
   page: z.coerce.number().int().min(1).optional().default(1),
   pageSize: z.coerce.number().int().min(1).max(200).optional().default(25),
   sortBy: z
@@ -74,6 +83,8 @@ export const prospectQuerySchema = z.object({
       'hasWebsite',
       'score',
       'status',
+      'favorite',
+      'category',
       'followUpDate',
       'lastContactDate',
       'createdAt',

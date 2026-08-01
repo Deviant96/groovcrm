@@ -172,6 +172,8 @@ function openExternal(url: string | null) {
           <InlineEdit :model-value="prospect.sourceUrl" label="Source URL" @save="(v) => saveField({ sourceUrl: v })" />
           <InlineEdit :model-value="prospect.score" label="Score" type="number" @save="(v) => saveField({ score: v })" />
           <InlineEdit :model-value="prospect.hasWebsite" label="Has Website" type="boolean" @save="(v) => saveField({ hasWebsite: v })" />
+          <InlineEdit :model-value="prospect.favorite" label="Favorite" type="boolean" @save="(v) => saveField({ favorite: v })" />
+          <InlineEdit :model-value="prospect.category" label="Category" @save="(v) => saveField({ category: v })" />
           <InlineEdit
             :model-value="prospect.status"
             label="Status"
