@@ -97,13 +97,42 @@ function openExternal(url: string | null) {
 
 <template>
   <div class="gc-page space-y-4">
-    <div class="flex flex-wrap items-center gap-3">
+    <div class="flex flex-wrap items-start gap-3">
       <Button icon="pi pi-arrow-left" text rounded severity="secondary" @click="router.push('/prospects')" />
-      <div class="grow">
-        <h1 class="text-2xl font-semibold tracking-tight">{{ prospect?.companyName ?? 'Prospect' }}</h1>
+      <div class="grow min-w-0 space-y-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <h1 class="text-2xl font-semibold tracking-tight">{{ prospect?.companyName ?? 'Prospect' }}</h1>
+          <template v-if="prospect">
+            <Button
+              :icon="prospect.favorite ? 'pi pi-star-fill' : 'pi pi-star'"
+              text
+              rounded
+              :severity="prospect.favorite ? 'warn' : 'secondary'"
+              v-tooltip.bottom="prospect.favorite ? 'Unfavorite' : 'Favorite'"
+              @click="saveField({ favorite: !prospect.favorite })"
+            />
+            <Tag :value="STATUS_LABELS[prospect.status]" :severity="statusSeverity(prospect.status)" />
+            <Tag v-if="prospect.category" :value="prospect.category" severity="info" />
+          </template>
+        </div>
+
+        <div v-if="prospect" class="grid gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <InlineEdit :model-value="prospect.score" label="Score" type="number" @save="(v) => saveField({ score: v })" />
+          <InlineEdit :model-value="prospect.hasWebsite" label="Has Website" type="boolean" @save="(v) => saveField({ hasWebsite: v })" />
+          <InlineEdit :model-value="prospect.category" label="Category" @save="(v) => saveField({ category: v })" />
+          <InlineEdit
+            :model-value="prospect.status"
+            label="Status"
+            type="select"
+            :options="STATUS_OPTIONS"
+            @save="(v) => saveField({ status: v })"
+          />
+          <InlineEdit :model-value="prospect.followUpDate" label="Follow Up" type="date" @save="(v) => saveField({ followUpDate: v })" />
+          <InlineEdit :model-value="prospect.lastContactDate" label="Last Contact" type="date" @save="(v) => saveField({ lastContactDate: v })" />
+        </div>
+
         <p class="text-sm text-gray-500">Double-click any field to edit · Enter saves · Esc cancels</p>
       </div>
-      <Tag v-if="prospect" :value="STATUS_LABELS[prospect.status]" :severity="statusSeverity(prospect.status)" />
     </div>
 
     <div v-if="store.loading && !prospect" class="grid gap-4 lg:grid-cols-2">
@@ -170,19 +199,6 @@ function openExternal(url: string | null) {
           <InlineEdit :model-value="prospect.website" label="Website" @save="(v) => saveField({ website: v })" />
           <InlineEdit :model-value="prospect.phoneNumber" label="Phone" @save="(v) => saveField({ phoneNumber: v })" />
           <InlineEdit :model-value="prospect.sourceUrl" label="Source URL" @save="(v) => saveField({ sourceUrl: v })" />
-          <InlineEdit :model-value="prospect.score" label="Score" type="number" @save="(v) => saveField({ score: v })" />
-          <InlineEdit :model-value="prospect.hasWebsite" label="Has Website" type="boolean" @save="(v) => saveField({ hasWebsite: v })" />
-          <InlineEdit :model-value="prospect.favorite" label="Favorite" type="boolean" @save="(v) => saveField({ favorite: v })" />
-          <InlineEdit :model-value="prospect.category" label="Category" @save="(v) => saveField({ category: v })" />
-          <InlineEdit
-            :model-value="prospect.status"
-            label="Status"
-            type="select"
-            :options="STATUS_OPTIONS"
-            @save="(v) => saveField({ status: v })"
-          />
-          <InlineEdit :model-value="prospect.followUpDate" label="Follow Up" type="date" @save="(v) => saveField({ followUpDate: v })" />
-          <InlineEdit :model-value="prospect.lastContactDate" label="Last Contact" type="date" @save="(v) => saveField({ lastContactDate: v })" />
           <InlineEdit :model-value="prospect.notes" label="Summary notes" type="textarea" @save="(v) => saveField({ notes: v })" />
         </section>
 
