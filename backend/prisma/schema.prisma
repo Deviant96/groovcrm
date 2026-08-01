@@ -97,12 +97,15 @@ model Prospect {
 }
 
 model Template {
-  id        String           @id @default(cuid())
-  name      String
-  category  TemplateCategory @default(GENERAL)
-  message   String           @db.Text
-  createdAt DateTime         @default(now()) @map("created_at")
-  updatedAt DateTime         @updatedAt @map("updated_at")
+  id                 String           @id @default(cuid())
+  name               String
+  category           TemplateCategory @default(GENERAL)
+  /// Prospect/lead categories this template is best suited for (e.g. "Tour & Travel").
+  /// Used to auto-suggest templates when generating WhatsApp for a matching prospect.
+  prospectCategories String[]         @default([]) @map("prospect_categories")
+  message            String           @db.Text
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
 
   @@index([category])
   @@map("templates")

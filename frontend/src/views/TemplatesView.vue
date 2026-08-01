@@ -5,12 +5,13 @@ import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import Select from 'primevue/select';
+import MultiSelect from 'primevue/multiselect';
 import Skeleton from 'primevue/skeleton';
 import Tag from 'primevue/tag';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
 import { useTemplateStore } from '@/stores/templates';
-import { templateApi } from '@/services';
+import { prospectApi, templateApi } from '@/services';
 import { CATEGORY_LABELS, type Template, type TemplateCategory } from '@/types';
 import { renderTemplate } from '@/utils';
 
@@ -23,13 +24,22 @@ const editing = ref<Template | null>(null);
 const form = ref({
   name: '',
   category: 'GENERAL' as TemplateCategory,
+  prospectCategories: [] as string[],
   message: '',
 });
+
+const knownProspectCategories = ref<string[]>([]);
+const customCategoryInput = ref('');
 
 const categoryOptions = Object.entries(CATEGORY_LABELS).map(([value, label]) => ({
   value: value as TemplateCategory,
   label,
 }));
+
+const prospectCategoryOptions = computed(() => {
+  const set = new Set<string>([...knownProspectCategories.value, ...form.value.prospectCategories]);
+  return [...set].sort((a, b) => a.localeCompare(b));
+});
 
 const preview = computed(() =>
   renderTemplate(form.value.message, {
@@ -41,22 +51,58 @@ const preview = computed(() =>
   }),
 );
 
-onMounted(() => store.fetchAll());
+onMounted(async () => {
+  await Promise.all([store.fetchAll(), loadProspectCategories()]);
+});
+
+async function loadProspectCategories() {
+  try {
+    const { data } = await prospectApi.categories();
+    knownProspectCategories.value = data;
+  } catch {
+    knownProspectCategories.value = [];
+  }
+}
 
 function openCreate() {
   editing.value = null;
   form.value = {
     name: '',
     category: 'GENERAL',
+    prospectCategories: [],
     message: 'Halo {{company}},\n\nKami GroovDev.\n\n',
   };
+  customCategoryInput.value = '';
   dialogOpen.value = true;
 }
 
 function openEdit(t: Template) {
   editing.value = t;
-  form.value = { name: t.name, category: t.category, message: t.message };
+  form.value = {
+    name: t.name,
+    category: t.category,
+    prospectCategories: [...(t.prospectCategories ?? [])],
+    message: t.message,
+  };
+  customCategoryInput.value = '';
   dialogOpen.value = true;
+}
+
+function addCustomProspectCategory() {
+  const value = customCategoryInput.value.trim();
+  if (!value) return;
+  const exists = form.value.prospectCategories.some(
+    (c) => c.toLowerCase() === value.toLowerCase(),
+  );
+  if (!exists) {
+    form.value.prospectCategories = [...form.value.prospectCategories, value];
+  }
+  if (!knownProspectCategories.value.some((c) => c.toLowerCase() === value.toLowerCase())) {
+    knownProspectCategories.value = [...knownProspectCategories.value, value].sort((a, b) =>
+      a.localeCompare(b),
+    );
+  }
+  customCategoryInput.value = '';
 }
 
 async function save() {
@@ -64,11 +110,17 @@ async function save() {
     toast.add({ severity: 'warn', summary: 'Name and message required', life: 2000 });
     return;
   }
+  const payload = {
+    name: form.value.name,
+    category: form.value.category,
+    prospectCategories: form.value.prospectCategories,
+    message: form.value.message,
+  };
   if (editing.value) {
-    await templateApi.update(editing.value.id, form.value);
+    await templateApi.update(editing.value.id, payload);
     toast.add({ severity: 'success', summary: 'Template updated', life: 2000 });
   } else {
-    await templateApi.create(form.value);
+    await templateApi.create(payload);
     toast.add({ severity: 'success', summary: 'Template created', life: 2000 });
   }
   dialogOpen.value = false;
@@ -123,7 +175,15 @@ function remove(t: Template) {
         <div class="mb-2 flex items-start justify-between gap-2">
           <div>
             <h2 class="font-semibold text-gray-900">{{ t.name }}</h2>
-            <Tag :value="CATEGORY_LABELS[t.category]" severity="success" class="mt-1" />
+            <div class="mt-1 flex flex-wrap gap-1">
+              <Tag :value="CATEGORY_LABELS[t.category]" severity="success" />
+              <Tag
+                v-for="cat in t.prospectCategories ?? []"
+                :key="cat"
+                :value="cat"
+                severity="info"
+              />
+            </div>
           </div>
           <div class="flex gap-1">
             <Button icon="pi pi-pencil" text rounded size="small" @click="openEdit(t)" />
@@ -147,7 +207,7 @@ function remove(t: Template) {
             <InputText v-model="form.name" class="w-full" />
           </div>
           <div>
-            <label class="mb-1 block text-sm font-medium">Category</label>
+            <label class="mb-1 block text-sm font-medium">Message type</label>
             <Select
               v-model="form.category"
               :options="categoryOptions"
@@ -155,6 +215,30 @@ function remove(t: Template) {
               option-value="value"
               class="w-full"
             />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium">Prospect categories</label>
+            <p class="mb-1.5 text-xs text-gray-500">
+              Pin which prospect categories this template should be suggested for when generating WhatsApp
+              (e.g. Tour &amp; Travel).
+            </p>
+            <MultiSelect
+              v-model="form.prospectCategories"
+              :options="prospectCategoryOptions"
+              placeholder="Select prospect categories"
+              display="chip"
+              filter
+              class="w-full"
+            />
+            <div class="mt-2 flex gap-2">
+              <InputText
+                v-model="customCategoryInput"
+                class="w-full"
+                placeholder="Add category name…"
+                @keydown.enter.prevent="addCustomProspectCategory"
+              />
+              <Button label="Add" severity="secondary" @click="addCustomProspectCategory" />
+            </div>
           </div>
           <div>
             <label class="mb-1 block text-sm font-medium">Message</label>

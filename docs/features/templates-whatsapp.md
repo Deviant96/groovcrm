@@ -10,11 +10,21 @@ Variables:
 - `{{phone}}`
 - `{{score}}`
 
-Live preview updates as you type. Categories: Website Offer, SEO, Branding, Maintenance, Follow Up, General.
+Live preview updates as you type.
+
+**Message type** (template category): Website Offer, SEO, Branding, Maintenance, Follow Up, General.
+
+**Prospect categories**: map each template to one or more prospect/lead categories (e.g. `Tour & Travel`). When generating WhatsApp for a prospect in that category, matching templates are suggested first. Leave empty for general use.
 
 ## WhatsApp generator
 
 Builds `https://wa.me/{phone}?text={encoded_message}` after normalizing Indonesian numbers (`08…` → `62…`).
+
+Template picker:
+
+1. Templates mapped to the prospect’s category (suggested first, auto-selected when present)
+2. Unmapped / general templates
+3. Templates mapped to other categories
 
 Actions:
 

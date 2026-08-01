@@ -418,6 +418,19 @@ export async function getLeadIndex() {
   };
 }
 
+export async function listCategories() {
+  const rows = await prisma.prospect.findMany({
+    where: { category: { not: null } },
+    select: { category: true },
+    distinct: ['category'],
+    orderBy: { category: 'asc' },
+  });
+  return rows
+    .map((r) => (r.category || '').trim())
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b));
+}
+
 type InstagramLeadInput = {
   handle: string;
   name?: string | null;

@@ -128,6 +128,14 @@ export async function leadIndex(_req: Request, res: Response, next: NextFunction
   }
 }
 
+export async function categories(_req: Request, res: Response, next: NextFunction) {
+  try {
+    res.json(await prospectService.listCategories());
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function upsertInstagramLead(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await prospectService.upsertInstagramLead(validatedBody(req, res));

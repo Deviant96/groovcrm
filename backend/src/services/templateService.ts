@@ -12,20 +12,57 @@ export async function getTemplate(id: string) {
   return assertFound(await prisma.template.findUnique({ where: { id } }), 'Template not found');
 }
 
+function normalizeProspectCategories(categories?: string[]) {
+  if (!categories?.length) return [];
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const raw of categories) {
+    const value = raw.trim();
+    if (!value) continue;
+    const key = value.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(value);
+  }
+  return result;
+}
+
 export async function createTemplate(data: {
   name: string;
   category: TemplateCategory;
+  prospectCategories?: string[];
   message: string;
 }) {
-  return prisma.template.create({ data });
+  return prisma.template.create({
+    data: {
+      name: data.name,
+      category: data.category,
+      message: data.message,
+      prospectCategories: normalizeProspectCategories(data.prospectCategories),
+    },
+  });
 }
 
 export async function updateTemplate(
   id: string,
-  data: Partial<{ name: string; category: TemplateCategory; message: string }>,
+  data: Partial<{
+    name: string;
+    category: TemplateCategory;
+    prospectCategories: string[];
+    message: string;
+  }>,
 ) {
   assertFound(await prisma.template.findUnique({ where: { id } }), 'Template not found');
-  return prisma.template.update({ where: { id }, data });
+  const { prospectCategories, ...rest } = data;
+  return prisma.template.update({
+    where: { id },
+    data: {
+      ...rest,
+      ...(prospectCategories !== undefined
+        ? { prospectCategories: normalizeProspectCategories(prospectCategories) }
+        : {}),
+    },
+  });
 }
 
 export async function deleteTemplate(id: string) {

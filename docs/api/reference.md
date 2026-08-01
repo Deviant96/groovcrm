@@ -21,7 +21,8 @@ All routes except `/auth/login`, `/auth/refresh`, `/auth/logout`, and `/health` 
 ## Prospects
 
 - `GET /prospects` query: search, status, hasWebsite, hasPhone, hasInstagram, hasWebsiteUrl, scoreMin/Max, followUp, page, pageSize, sortBy, sortDir
-- `GET /prospects/lead-index` → `{ leads: [{ id, handle, website, phone, visited }] }` (Instagram extension)
+- `GET /prospects/lead-index` → `{ leads: [{ id, handle, website, phone, visited, favorite, category }], categories: string[] }` (Instagram extension)
+- `GET /prospects/categories` → `string[]` distinct prospect category values
 - `POST /prospects/instagram-lead` `{ handle, name?, website?, phone?, links?, hasWebsite?, score?, sourceUrl?, visited? }` — upsert by Instagram handle
 - `GET /prospects/follow-ups`
 - `GET /prospects/stats`
@@ -38,12 +39,13 @@ All routes except `/auth/login`, `/auth/refresh`, `/auth/logout`, and `/health` 
 ## Templates
 
 - `GET /templates`
-- `POST /templates`
+- `POST /templates` `{ name, category?, prospectCategories?, message }`
 - `GET /templates/:id`
-- `PATCH /templates/:id`
+- `PATCH /templates/:id` `{ name?, category?, prospectCategories?, message? }`
 - `DELETE /templates/:id`
 - `POST /templates/preview` `{ message, company?, … }`
 
+`prospectCategories` is a string array of prospect/lead categories this template should be suggested for (e.g. `["Tour & Travel"]`).
 ## WhatsApp
 
 - `POST /whatsapp/generate` `{ prospectId, templateId?, message? }` → `{ url, message, phone }`

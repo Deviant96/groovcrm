@@ -111,6 +111,11 @@ export const noteCreateSchema = z.object({
 export const templateCreateSchema = z.object({
   name: z.string().min(1),
   category: z.nativeEnum(TemplateCategory).optional().default(TemplateCategory.GENERAL),
+  prospectCategories: z
+    .array(z.string().trim().min(1).max(80))
+    .max(50)
+    .optional()
+    .default([]),
   message: z.string().min(1),
 });
 

@@ -2,11 +2,23 @@ let existingHandles = [];
 let existingHandleSet = new Set();
 let existingLeadDataByHandle = new Map();
 let visitedHandleSet = new Set();
+let knownCategories = [];
 let handlesLoadStatus = {
   ok: false,
   error: "Not loaded yet",
   debug: null
 };
+
+const DEFAULT_LEAD_CATEGORIES = [
+  "Website",
+  "SEO",
+  "Branding",
+  "E-commerce",
+  "Local Business",
+  "Agency",
+  "Creator",
+  "Other"
+];
 
 // Edit these selectors if Instagram changes its suggested-accounts markup.
 const IG_LEAD_SELECTORS = {
@@ -69,11 +81,15 @@ let suggestedRetryTimers = [];
     data.website = existingRecord.website ?? "";
     data.phone = existingRecord.phone ?? "";
     data.visited = !!existingRecord.visited;
+    data.favorite = !!existingRecord.favorite;
+    data.category = existingRecord.category ?? "";
     data.prospectId = existingRecord.id || null;
     data.hasWebsite = !!data.website;
     data.score = scoreLead(data);
   } else {
     data.visited = false;
+    data.favorite = false;
+    data.category = "";
     data.prospectId = null;
   }
 
@@ -348,6 +364,16 @@ async function loadExistingHandles() {
 
     const rawData = res?.ok ? res.data : [];
     const leadRecords = extractLeadRecords(rawData);
+    const categoriesFromApi = Array.isArray(rawData?.categories)
+      ? rawData.categories.map(c => String(c || "").trim()).filter(Boolean)
+      : [];
+    const categoriesFromLeads = leadRecords
+      .map(r => String(r.category || "").trim())
+      .filter(Boolean);
+
+    knownCategories = [...new Set([...DEFAULT_LEAD_CATEGORIES, ...categoriesFromApi, ...categoriesFromLeads])]
+      .sort((a, b) => a.localeCompare(b));
+
     existingLeadDataByHandle = new Map(
       leadRecords
         .map(r => ({
@@ -355,10 +381,19 @@ async function loadExistingHandles() {
           handle: normalizeHandle(r.handle),
           website: String(r.website || "").trim(),
           phone: String(r.phone || "").trim(),
-          visited: parseVisitedValue(r.visited)
+          visited: parseVisitedValue(r.visited),
+          favorite: parseVisitedValue(r.favorite),
+          category: String(r.category || "").trim()
         }))
         .filter(r => r.handle)
-        .map(r => [r.handle, { id: r.id, website: r.website, phone: r.phone, visited: r.visited }])
+        .map(r => [r.handle, {
+          id: r.id,
+          website: r.website,
+          phone: r.phone,
+          visited: r.visited,
+          favorite: r.favorite,
+          category: r.category
+        }])
     );
 
     const extractedHandles = extractHandlesFromPayload(rawData);
@@ -502,8 +537,17 @@ async function saveLead(data, successMessage = "Saved to GroovCRM ✅") {
         id: res?.data?.prospect?.id || prev.id || null,
         website: data.website ?? prev.website ?? "",
         phone: data.phone ?? prev.phone ?? "",
-        visited: data.visited != null ? !!data.visited : !!prev.visited
+        visited: data.visited != null ? !!data.visited : !!prev.visited,
+        favorite: data.favorite != null ? !!data.favorite : !!prev.favorite,
+        category: data.category != null ? String(data.category || "").trim() : (prev.category || "")
       });
+
+      if (data.category) {
+        const cat = String(data.category).trim();
+        if (cat && !knownCategories.includes(cat)) {
+          knownCategories = [...knownCategories, cat].sort((a, b) => a.localeCompare(b));
+        }
+      }
       rebuildVisitedHandleSet();
       scheduleSuggestedVisitedRefresh("saveLead");
     }
@@ -1093,7 +1137,13 @@ function injectWidget(data, exists, debugInfo, profileValues, panelVisible = tru
   `;
 
   let visited = !!data.visited;
+  let favorite = !!data.favorite;
   let leadExists = !!exists;
+  const categoryOptions = [...new Set([
+    ...(data.category ? [data.category] : []),
+    ...knownCategories,
+    ...DEFAULT_LEAD_CATEGORIES
+  ])].sort((a, b) => a.localeCompare(b));
 
   div.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:12px;">
@@ -1102,6 +1152,22 @@ function injectWidget(data, exists, debugInfo, profileValues, panelVisible = tru
         <div style="color:#94a3b8;margin-top:2px;">${escapeHtml(data.name || "-")}</div>
       </div>
       <div style="display:flex;align-items:flex-start;gap:6px;flex-shrink:0;">
+        <button id="ig-favorite-btn" type="button" title="${favorite ? "Unfavorite" : "Mark favorite"}" style="
+          margin-top:1px;
+          width:28px;
+          height:28px;
+          padding:0;
+          border:1px solid ${favorite ? "rgba(250,204,21,0.45)" : "rgba(255,255,255,0.12)"};
+          background:${favorite ? "rgba(250,204,21,0.18)" : "rgba(255,255,255,0.06)"};
+          color:${favorite ? "#facc15" : "#94a3b8"};
+          border-radius:8px;
+          cursor:pointer;
+          font-size:14px;
+          line-height:1;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+        ">${favorite ? "★" : "☆"}</button>
         <div id="ig-status-badge" style="
           font-size:11px;
           padding:4px 10px;
@@ -1154,10 +1220,19 @@ function injectWidget(data, exists, debugInfo, profileValues, panelVisible = tru
     </div>
 
     <label style="display:block;margin:0 0 5px;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Phone</label>
-    <div style="display:flex;gap:6px;margin-bottom:12px;">
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
       <input id="ig-phone-input" value="${escapeHtml(data.phone || "")}" style="${inputStyle}" placeholder="e.g. +62 812 3456 7890" />
       <button id="ig-phone-profile" style="${clearBtnStyle}" title="Use profile value" ${exists ? "" : "disabled"}>↻</button>
       <button id="ig-phone-clear" style="${clearBtnStyle}" title="Clear">×</button>
+    </div>
+
+    <label style="display:block;margin:0 0 5px;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Category <span style="text-transform:none;letter-spacing:0;opacity:0.7;">(optional)</span></label>
+    <div style="display:flex;gap:6px;margin-bottom:12px;">
+      <input id="ig-category-input" list="ig-category-list" value="${escapeHtml(data.category || "")}" style="${inputStyle}" placeholder="e.g. Website, SEO, Local Business" />
+      <button id="ig-category-clear" style="${clearBtnStyle}" title="Clear category">×</button>
+      <datalist id="ig-category-list">
+        ${categoryOptions.map(c => `<option value="${escapeHtml(c)}"></option>`).join("")}
+      </datalist>
     </div>
 
     <div style="display:flex;gap:6px;margin-bottom:12px;">
@@ -1175,12 +1250,12 @@ function injectWidget(data, exists, debugInfo, profileValues, panelVisible = tru
         <div style="font-weight:600;"><span id="ig-score-value">${data.score}</span></div>
       </div>
       <div style="padding:8px;border-radius:8px;background:rgba(255,255,255,0.07);text-align:center;">
-        <div style="font-size:10px;color:#64748b;text-transform:uppercase;margin-bottom:2px;">Links</div>
-        <div style="font-weight:600;">${data.links.length}</div>
-      </div>
-      <div style="padding:8px;border-radius:8px;background:rgba(255,255,255,0.07);text-align:center;">
         <div style="font-size:10px;color:#64748b;text-transform:uppercase;margin-bottom:2px;">Visited</div>
         <div style="font-weight:600;"><span id="ig-visited-value">${visited ? "✅" : "❌"}</span></div>
+      </div>
+      <div style="padding:8px;border-radius:8px;background:rgba(255,255,255,0.07);text-align:center;">
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;margin-bottom:2px;">Favorite</div>
+        <div style="font-weight:600;"><span id="ig-favorite-stat">${favorite ? "★" : "☆"}</span></div>
       </div>
     </div>
 
@@ -1291,9 +1366,12 @@ function injectWidget(data, exists, debugInfo, profileValues, panelVisible = tru
 
   const websiteInput = document.getElementById("ig-website-input");
   const phoneInput = document.getElementById("ig-phone-input");
+  const categoryInput = document.getElementById("ig-category-input");
   const scoreValue = document.getElementById("ig-score-value");
   const websiteStat = document.getElementById("ig-website-stat");
   const visitedValue = document.getElementById("ig-visited-value");
+  const favoriteStat = document.getElementById("ig-favorite-stat");
+  const favoriteBtn = document.getElementById("ig-favorite-btn");
   const statusBadge = document.getElementById("ig-status-badge");
   const existsBanner = document.getElementById("ig-exists-banner");
   const websiteProfileBtn = document.getElementById("ig-website-profile");
@@ -1310,6 +1388,21 @@ function injectWidget(data, exists, debugInfo, profileValues, panelVisible = tru
     const nextScore = scoreLead({ ...data, website: editedWebsite, hasWebsite: !!editedWebsite });
     if (scoreValue) scoreValue.textContent = String(nextScore);
     if (websiteStat) websiteStat.textContent = editedWebsite ? "✅" : "❌";
+  }
+
+  function syncFavoriteUi() {
+    if (favoriteStat) favoriteStat.textContent = favorite ? "★" : "☆";
+    if (favoriteBtn) {
+      favoriteBtn.textContent = favorite ? "★" : "☆";
+      favoriteBtn.title = favorite ? "Unfavorite" : "Mark favorite";
+      favoriteBtn.style.border = favorite
+        ? "1px solid rgba(250,204,21,0.45)"
+        : "1px solid rgba(255,255,255,0.12)";
+      favoriteBtn.style.background = favorite
+        ? "rgba(250,204,21,0.18)"
+        : "rgba(255,255,255,0.06)";
+      favoriteBtn.style.color = favorite ? "#facc15" : "#94a3b8";
+    }
   }
 
   function syncLeadUiState() {
@@ -1338,20 +1431,25 @@ function injectWidget(data, exists, debugInfo, profileValues, panelVisible = tru
 
     if (visitedValue) visitedValue.textContent = visited ? "✅" : "❌";
     updateVisitedButtons(markVisitedBtn, unmarkVisitedBtn, visited);
+    syncFavoriteUi();
     refreshStatsFromInputs();
   }
 
-  function buildPayload(visitedOverride) {
+  function buildPayload(overrides = {}) {
     const editedWebsite = websiteInput?.value?.trim() || "";
     const editedPhoneRaw = phoneInput?.value?.trim() || "";
-    const nextVisited = visitedOverride != null ? !!visitedOverride : visited;
+    const editedCategory = categoryInput?.value?.trim() || "";
+    const nextVisited = overrides.visited != null ? !!overrides.visited : visited;
+    const nextFavorite = overrides.favorite != null ? !!overrides.favorite : favorite;
 
     const payload = {
       ...data,
       website: editedWebsite,
       phone: sanitizePhone(editedPhoneRaw),
       hasWebsite: !!editedWebsite,
-      visited: nextVisited
+      category: editedCategory || null,
+      visited: nextVisited,
+      favorite: nextFavorite
     };
     payload.score = scoreLead(payload);
     return payload;
@@ -1360,11 +1458,17 @@ function injectWidget(data, exists, debugInfo, profileValues, panelVisible = tru
   function applySuccessfulSave(payload) {
     leadExists = true;
     visited = !!payload.visited;
+    favorite = !!payload.favorite;
     data.website = payload.website || "";
     data.phone = payload.phone || "";
     data.hasWebsite = !!payload.hasWebsite;
     data.score = payload.score;
     data.visited = visited;
+    data.favorite = favorite;
+    data.category = payload.category || "";
+    if (categoryInput && payload.category != null) {
+      categoryInput.value = payload.category || "";
+    }
     syncLeadUiState();
   }
 
@@ -1379,7 +1483,7 @@ function injectWidget(data, exists, debugInfo, profileValues, panelVisible = tru
     if (otherBtn) otherBtn.disabled = true;
 
     try {
-      const payload = buildPayload(nextVisited);
+      const payload = buildPayload({ visited: nextVisited });
       await saveLead(payload, successMessage);
       applySuccessfulSave(payload);
     } catch (e) {
@@ -1389,12 +1493,39 @@ function injectWidget(data, exists, debugInfo, profileValues, panelVisible = tru
     }
   }
 
+  async function persistFavorite(nextFavorite) {
+    if (favoriteBtn) {
+      favoriteBtn.disabled = true;
+      favoriteBtn.style.opacity = "0.65";
+    }
+
+    try {
+      const payload = buildPayload({ favorite: nextFavorite });
+      await saveLead(
+        payload,
+        nextFavorite ? "Marked as favorite ★" : "Removed from favorites ☆"
+      );
+      applySuccessfulSave(payload);
+    } catch (e) {
+      syncLeadUiState();
+    } finally {
+      if (favoriteBtn) {
+        favoriteBtn.disabled = false;
+        favoriteBtn.style.opacity = "1";
+      }
+    }
+  }
+
   markVisitedBtn?.addEventListener("click", () => {
     persistVisited(true, "Marked as visited ✅");
   });
 
   unmarkVisitedBtn?.addEventListener("click", () => {
     persistVisited(false, "Unmarked visited ✅");
+  });
+
+  favoriteBtn?.addEventListener("click", () => {
+    persistFavorite(!favorite);
   });
 
   websiteInput?.addEventListener("input", refreshStatsFromInputs);
@@ -1415,6 +1546,10 @@ function injectWidget(data, exists, debugInfo, profileValues, panelVisible = tru
 
   phoneProfileBtn?.addEventListener("click", () => {
     phoneInput.value = profileValues?.phone || "";
+  });
+
+  document.getElementById("ig-category-clear")?.addEventListener("click", () => {
+    if (categoryInput) categoryInput.value = "";
   });
 
   debugToggle?.addEventListener("click", () => {
@@ -1518,12 +1653,16 @@ function extractLeadRecords(payload) {
     const website = payload.website || payload.site || payload.url || "";
     const phone = payload.phone || payload.tel || payload.mobile || payload.phoneNumber || "";
     const visited = parseVisitedValue(payload.visited);
+    const favorite = parseVisitedValue(payload.favorite);
+    const category = payload.category || "";
     return [{
       id: payload.id || null,
       handle: String(handle),
       website: String(website || ""),
       phone: String(phone || ""),
-      visited
+      visited,
+      favorite,
+      category: String(category || "")
     }];
   }
 

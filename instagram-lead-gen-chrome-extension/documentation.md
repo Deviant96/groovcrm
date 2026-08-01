@@ -36,9 +36,13 @@ If you are not signed in, the panel prompts you to open settings.
 | `score` | `score` |
 | `sourceUrl` | `sourceUrl` |
 | `visited` | `visited` |
+| `favorite` | `favorite` |
+| `category` | `category` (optional free-text) |
 | `links` | stored in `notes` on create |
 
-Save / Update / Mark visited all call the same upsert endpoint (match by Instagram handle, case-insensitive).
+Save / Update / Mark visited / Favorite all call the same upsert endpoint (match by Instagram handle, case-insensitive).
+
+Category suggestions come from defaults plus distinct categories already used in CRM (`GET /prospects/lead-index` → `categories`).
 
 ## Lead scoring (unchanged)
 

@@ -16,6 +16,33 @@ export function renderTemplate(
     .replace(/\{\{\s*score\s*\}\}/gi, vars.score != null ? String(vars.score) : '');
 }
 
+/** Case-insensitive match of a prospect category against a template's mapped categories. */
+export function templateMatchesProspectCategory(
+  prospectCategories: string[] | undefined | null,
+  prospectCategory?: string | null,
+) {
+  const target = (prospectCategory || '').trim().toLowerCase();
+  if (!target || !prospectCategories?.length) return false;
+  return prospectCategories.some((c) => c.trim().toLowerCase() === target);
+}
+
+/**
+ * Rank templates for WhatsApp generation:
+ * 1) exact prospect-category match
+ * 2) unmapped / general templates
+ * 3) templates mapped to other categories
+ */
+export function rankTemplatesForProspectCategory<
+  T extends { prospectCategories?: string[] | null },
+>(templates: T[], prospectCategory?: string | null): T[] {
+  const rank = (t: T) => {
+    if (templateMatchesProspectCategory(t.prospectCategories, prospectCategory)) return 0;
+    if (!t.prospectCategories?.length) return 1;
+    return 2;
+  };
+  return [...templates].sort((a, b) => rank(a) - rank(b));
+}
+
 export function formatDate(value?: string | null) {
   if (!value) return '—';
   return new Date(value).toLocaleDateString(undefined, {

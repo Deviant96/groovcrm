@@ -73,6 +73,8 @@ export interface Template {
   id: string;
   name: string;
   category: TemplateCategory;
+  /** Prospect/lead categories this template is best suited for (e.g. "Tour & Travel"). */
+  prospectCategories: string[];
   message: string;
   createdAt: string;
   updatedAt: string;

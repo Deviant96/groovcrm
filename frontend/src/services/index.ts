@@ -33,6 +33,7 @@ export const prospectApi = {
   followUps: () => api.get<{ today: Prospect[]; overdue: Prospect[] }>('/prospects/follow-ups'),
   stats: () => api.get<{ total: number; withFollowUp: number; byStatus: Record<string, number> }>('/prospects/stats'),
   search: (q: string) => api.get<Prospect[]>('/prospects/search', { params: { q } }),
+  categories: () => api.get<string[]>('/prospects/categories'),
 };
 
 export const templateApi = {

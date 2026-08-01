@@ -4,10 +4,15 @@ import Dialog from 'primevue/dialog';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
+import Tag from 'primevue/tag';
 import { useTemplateStore } from '@/stores/templates';
 import { whatsappApi } from '@/services';
-import type { Prospect } from '@/types';
-import { renderTemplate } from '@/utils';
+import type { Prospect, Template } from '@/types';
+import {
+  rankTemplatesForProspectCategory,
+  renderTemplate,
+  templateMatchesProspectCategory,
+} from '@/utils';
 import { useCopy } from '@/composables/useCopy';
 
 const visible = defineModel<boolean>('visible', { default: false });
@@ -21,7 +26,17 @@ const message = ref('');
 const loading = ref(false);
 const generatedUrl = ref('');
 
+const rankedTemplates = computed(() =>
+  rankTemplatesForProspectCategory(templates.items, props.prospect?.category),
+);
+
 const selectedTemplate = computed(() => templates.items.find((t) => t.id === templateId.value));
+
+const hasCategoryMatch = computed(() =>
+  rankedTemplates.value.some((t) =>
+    templateMatchesProspectCategory(t.prospectCategories, props.prospect?.category),
+  ),
+);
 
 const preview = computed(() => {
   if (!props.prospect) return '';
@@ -35,11 +50,20 @@ const preview = computed(() => {
   });
 });
 
+function isMatch(t: Template) {
+  return templateMatchesProspectCategory(t.prospectCategories, props.prospect?.category);
+}
+
+function pickDefaultTemplate(list: Template[]) {
+  const first = list[0];
+  templateId.value = first?.id ?? null;
+  message.value = first?.message ?? '';
+}
+
 watch(visible, async (v) => {
   if (v) {
     if (!templates.items.length) await templates.fetchAll();
-    templateId.value = templates.items[0]?.id ?? null;
-    message.value = templates.items[0]?.message ?? '';
+    pickDefaultTemplate(rankTemplatesForProspectCategory(templates.items, props.prospect?.category));
     generatedUrl.value = '';
   }
 });
@@ -83,19 +107,59 @@ async function copyLink() {
       <div class="text-sm text-gray-600">
         <span class="font-medium text-gray-900">{{ prospect.companyName }}</span>
         · {{ prospect.phoneNumber || 'No phone' }}
+        <template v-if="prospect.category">
+          · <Tag :value="prospect.category" severity="info" class="align-middle" />
+        </template>
+      </div>
+
+      <div
+        v-if="prospect.category && hasCategoryMatch"
+        class="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800"
+      >
+        Suggested templates for <span class="font-medium">{{ prospect.category }}</span> are listed first.
+      </div>
+      <div
+        v-else-if="prospect.category && !hasCategoryMatch"
+        class="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800"
+      >
+        No template mapped to <span class="font-medium">{{ prospect.category }}</span> yet.
+        Map prospect categories on the Templates page.
       </div>
 
       <div>
         <label class="mb-1.5 block text-sm font-medium">Template</label>
         <Select
           v-model="templateId"
-          :options="templates.items"
-          option-label="name"
+          :options="rankedTemplates"
           option-value="id"
           placeholder="Choose template"
           class="w-full"
           show-clear
-        />
+        >
+          <template #value="{ value, placeholder }">
+            <span v-if="value">
+              {{ rankedTemplates.find((t) => t.id === value)?.name || selectedTemplate?.name }}
+            </span>
+            <span v-else class="text-gray-400">{{ placeholder }}</span>
+          </template>
+          <template #option="{ option }">
+            <div class="flex w-full items-center justify-between gap-3">
+              <span>{{ option.name }}</span>
+              <Tag
+                v-if="isMatch(option)"
+                value="Match"
+                severity="success"
+                class="text-xs"
+              />
+              <Tag
+                v-else-if="!option.prospectCategories?.length"
+                value="General"
+                severity="secondary"
+                class="text-xs"
+              />
+            </div>
+          </template>
+        </Select>
       </div>
 
       <div>
