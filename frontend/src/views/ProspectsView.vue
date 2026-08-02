@@ -28,9 +28,14 @@ const status = useLocalStorage<ProspectStatus | null>('gc_prospect_filter_status
 const hasWebsite = useLocalStorage<boolean | null>('gc_prospect_filter_has_website', null);
 const hasPhone = useLocalStorage<boolean | null>('gc_prospect_filter_has_phone', null);
 const followUp = useLocalStorage<string | null>('gc_prospect_filter_follow_up', null);
+const favorite = useLocalStorage<boolean | null>('gc_prospect_filter_favorite', null);
+const category = useLocalStorage<string | null>('gc_prospect_filter_category', null);
 const bulkStatus = ref<ProspectStatus | null>(null);
 const waProspect = ref<Prospect | null>(null);
 const waVisible = ref(false);
+const categoryOptions = ref<{ label: string; value: string | null }[]>([
+  { label: 'All categories', value: null },
+]);
 
 const validStatuses = new Set(STATUS_OPTIONS.map((o) => o.value));
 if (status.value && !validStatuses.has(status.value)) {
@@ -43,6 +48,8 @@ if (followUp.value && !validFollowUps.has(followUp.value)) {
 
 const columnOptions = [
   { field: 'companyName', header: 'Company' },
+  { field: 'favorite', header: 'Favorite' },
+  { field: 'category', header: 'Category' },
   { field: 'instagramHandle', header: 'Instagram' },
   { field: 'phoneNumber', header: 'Phone' },
   { field: 'website', header: 'Website' },
@@ -57,6 +64,13 @@ const defaultVisibleColumns = columnOptions.map((c) => c.field);
 const validColumnFields = new Set(defaultVisibleColumns);
 const visibleColumns = useLocalStorage<string[]>('gc_prospect_visible_columns', [...defaultVisibleColumns]);
 visibleColumns.value = visibleColumns.value.filter((f) => validColumnFields.has(f));
+const columnsMigratedV2 = useLocalStorage('gc_prospect_columns_v2', false);
+if (!columnsMigratedV2.value) {
+  for (const field of ['favorite', 'category']) {
+    if (!visibleColumns.value.includes(field)) visibleColumns.value.push(field);
+  }
+  columnsMigratedV2.value = true;
+}
 if (!visibleColumns.value.length) {
   visibleColumns.value = [...defaultVisibleColumns];
 }
@@ -72,6 +86,12 @@ const phoneOptions = [
   { label: 'Any phone status', value: null },
   { label: 'Has phone number', value: true },
   { label: 'No phone number', value: false },
+];
+
+const favoriteOptions = [
+  { label: 'Any favorite', value: null },
+  { label: 'Favorites only', value: true },
+  { label: 'Not favorites', value: false },
 ];
 
 const followUpOptions = [
@@ -97,16 +117,47 @@ async function load(overrides = {}) {
     hasWebsite: hasWebsite.value ?? undefined,
     hasPhone: hasPhone.value ?? undefined,
     followUp: (followUp.value as 'today' | 'overdue' | 'upcoming' | 'none') || undefined,
+    favorite: favorite.value ?? undefined,
+    category: category.value || undefined,
     ...overrides,
   });
 }
 
+async function loadCategories() {
+  try {
+    const { data } = await prospectApi.categories();
+    categoryOptions.value = [
+      { label: 'All categories', value: null },
+      ...data.map((c) => ({ label: c, value: c })),
+    ];
+    if (category.value && !data.some((c) => c.toLowerCase() === category.value!.toLowerCase())) {
+      category.value = null;
+    }
+  } catch {
+    categoryOptions.value = [{ label: 'All categories', value: null }];
+  }
+}
+
 const debouncedSearch = useDebounceFn(() => load({ page: 1 }), 250);
 
-onMounted(() => load());
+onMounted(async () => {
+  await Promise.all([load(), loadCategories()]);
+});
 
-watch([status, hasWebsite, hasPhone, followUp], () => load({ page: 1 }));
+watch([status, hasWebsite, hasPhone, followUp, favorite, category], () => load({ page: 1 }));
 watch(search, () => debouncedSearch());
+
+async function toggleFavorite(p: Prospect, e: Event) {
+  e.stopPropagation();
+  const next = !p.favorite;
+  await prospectApi.update(p.id, { favorite: next });
+  p.favorite = next;
+  toast.add({
+    severity: 'success',
+    summary: next ? 'Added to favorites' : 'Removed from favorites',
+    life: 1500,
+  });
+}
 
 function onSort(e: { sortField?: string | ((item: unknown) => string) | undefined; sortOrder?: number | null | undefined }) {
   if (!e.sortField || typeof e.sortField !== 'string') return;
@@ -183,6 +234,8 @@ function openWhatsApp(p: Prospect, e: Event) {
           <InputText v-model="search" placeholder="Search anything…" class="w-full" />
         </span>
         <Select v-model="status" :options="[{ label: 'All statuses', value: null }, ...STATUS_OPTIONS]" option-label="label" option-value="value" placeholder="Status" class="min-w-[160px]" show-clear />
+        <Select v-model="category" :options="categoryOptions" option-label="label" option-value="value" placeholder="Category" class="min-w-[170px]" show-clear filter />
+        <Select v-model="favorite" :options="favoriteOptions" option-label="label" option-value="value" placeholder="Favorite" class="min-w-[150px]" />
         <Select v-model="hasWebsite" :options="websiteOptions" option-label="label" option-value="value" placeholder="Website" class="min-w-[170px]" />
         <Select v-model="hasPhone" :options="phoneOptions" option-label="label" option-value="value" placeholder="Phone" class="min-w-[180px]" />
         <Select v-model="followUp" :options="followUpOptions" option-label="label" option-value="value" placeholder="Follow-up" class="min-w-[180px]" />
@@ -248,6 +301,25 @@ function openWhatsApp(p: Prospect, e: Event) {
         <Column v-if="showCol('companyName')" field="companyName" header="Company" sortable style="min-width: 160px" frozen>
           <template #body="{ data }">
             <span class="font-medium text-gray-900">{{ data.companyName }}</span>
+          </template>
+        </Column>
+        <Column v-if="showCol('favorite')" field="favorite" header="Favorite" sortable style="min-width: 90px">
+          <template #body="{ data }">
+            <Button
+              :icon="data.favorite ? 'pi pi-star-fill' : 'pi pi-star'"
+              rounded
+              text
+              size="small"
+              :severity="data.favorite ? 'warn' : 'secondary'"
+              v-tooltip.top="data.favorite ? 'Unfavorite' : 'Favorite'"
+              @click="toggleFavorite(data, $event)"
+            />
+          </template>
+        </Column>
+        <Column v-if="showCol('category')" field="category" header="Category" sortable style="min-width: 130px">
+          <template #body="{ data }">
+            <Tag v-if="data.category" :value="data.category" severity="info" />
+            <span v-else class="text-gray-400">—</span>
           </template>
         </Column>
         <Column v-if="showCol('instagramHandle')" field="instagramHandle" header="Instagram" sortable style="min-width: 120px">

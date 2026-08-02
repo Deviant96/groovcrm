@@ -20,7 +20,7 @@ All routes except `/auth/login`, `/auth/refresh`, `/auth/logout`, and `/health` 
 
 ## Prospects
 
-- `GET /prospects` query: search, status, hasWebsite, hasPhone, hasInstagram, hasWebsiteUrl, scoreMin/Max, followUp, page, pageSize, sortBy, sortDir
+- `GET /prospects` query: search, status, hasWebsite, hasPhone, hasInstagram, hasWebsiteUrl, favorite, category, scoreMin/Max, followUp, page, pageSize, sortBy, sortDir
 - `GET /prospects/lead-index` → `{ leads: [{ id, handle, website, phone, visited, favorite, category }], categories: string[] }` (Instagram extension)
 - `GET /prospects/categories` → `string[]` distinct prospect category values
 - `POST /prospects/instagram-lead` `{ handle, name?, website?, phone?, links?, hasWebsite?, score?, sourceUrl?, visited? }` — upsert by Instagram handle

@@ -98,6 +98,8 @@ export interface ProspectFilters {
   hasInstagram?: boolean;
   hasPhone?: boolean;
   hasWebsiteUrl?: boolean;
+  favorite?: boolean;
+  category?: string;
   page?: number;
   pageSize?: number;
   sortBy?: string;
