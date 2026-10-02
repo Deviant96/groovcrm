@@ -1,29 +1,13 @@
 services:
-  db:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-groovcrm}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-groovcrm}
-      POSTGRES_DB: ${POSTGRES_DB:-groovcrm}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-groovcrm} -d ${POSTGRES_DB:-groovcrm}']
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    # Bind Postgres to localhost only (optional host access for backups/migrations).
-    ports:
-      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-groovcrm}:${POSTGRES_PASSWORD:-groovcrm}@db:5432/${POSTGRES_DB:-groovcrm}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-groovcrm}:${POSTGRES_PASSWORD:-groovcrm}@host.docker.internal:5432/${POSTGRES_DB:-groovcrm}?schema=public
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
@@ -35,9 +19,6 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       ADMIN_NAME: ${ADMIN_NAME:-Admin}
       NODE_ENV: production
-    depends_on:
-      db:
-        condition: service_healthy
     # Exposed on localhost for the VPS host Apache reverse proxy.
     ports:
       - '127.0.0.1:${BACKEND_HOST_PORT:-3001}:3000'
@@ -52,6 +33,3 @@ services:
     # Exposed on localhost for the VPS host Apache reverse proxy.
     ports:
       - '127.0.0.1:${FRONTEND_HOST_PORT:-8081}:80'
-
-volumes:
-  pgdata:
