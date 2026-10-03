@@ -96,12 +96,20 @@ function openExternal(url: string | null) {
 </script>
 
 <template>
-  <div class="gc-page space-y-4">
+  <div class="space-y-4">
     <div class="flex flex-wrap items-start gap-3">
-      <Button icon="pi pi-arrow-left" text rounded severity="secondary" @click="router.push('/prospects')" />
-      <div class="grow min-w-0 space-y-3">
+      <Button
+        icon="pi pi-arrow-left"
+        text
+        rounded
+        severity="secondary"
+        @click="router.push('/prospects')"
+      />
+      <div class="min-w-0 grow space-y-3">
         <div class="flex flex-wrap items-center gap-2">
-          <h1 class="text-2xl font-semibold tracking-tight">{{ prospect?.companyName ?? 'Prospect' }}</h1>
+          <h1 class="text-xl font-semibold tracking-tight text-gc-highlighted lg:text-2xl">
+            {{ prospect?.companyName ?? 'Prospect' }}
+          </h1>
           <template v-if="prospect">
             <Button
               :icon="prospect.favorite ? 'pi pi-star-fill' : 'pi pi-star'"
@@ -116,10 +124,27 @@ function openExternal(url: string | null) {
           </template>
         </div>
 
-        <div v-if="prospect" class="grid gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <InlineEdit :model-value="prospect.score" label="Score" type="number" @save="(v) => saveField({ score: v })" />
-          <InlineEdit :model-value="prospect.hasWebsite" label="Has Website" type="boolean" @save="(v) => saveField({ hasWebsite: v })" />
-          <InlineEdit :model-value="prospect.category" label="Category" @save="(v) => saveField({ category: v })" />
+        <div
+          v-if="prospect"
+          class="grid gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        >
+          <InlineEdit
+            :model-value="prospect.score"
+            label="Score"
+            type="number"
+            @save="(v) => saveField({ score: v })"
+          />
+          <InlineEdit
+            :model-value="prospect.hasWebsite"
+            label="Has Website"
+            type="boolean"
+            @save="(v) => saveField({ hasWebsite: v })"
+          />
+          <InlineEdit
+            :model-value="prospect.category"
+            label="Category"
+            @save="(v) => saveField({ category: v })"
+          />
           <InlineEdit
             :model-value="prospect.status"
             label="Status"
@@ -127,11 +152,23 @@ function openExternal(url: string | null) {
             :options="STATUS_OPTIONS"
             @save="(v) => saveField({ status: v })"
           />
-          <InlineEdit :model-value="prospect.followUpDate" label="Follow Up" type="date" @save="(v) => saveField({ followUpDate: v })" />
-          <InlineEdit :model-value="prospect.lastContactDate" label="Last Contact" type="date" @save="(v) => saveField({ lastContactDate: v })" />
+          <InlineEdit
+            :model-value="prospect.followUpDate"
+            label="Follow Up"
+            type="date"
+            @save="(v) => saveField({ followUpDate: v })"
+          />
+          <InlineEdit
+            :model-value="prospect.lastContactDate"
+            label="Last Contact"
+            type="date"
+            @save="(v) => saveField({ lastContactDate: v })"
+          />
         </div>
 
-        <p class="text-sm text-gray-500">Double-click any field to edit · Enter saves · Esc cancels</p>
+        <p class="text-sm text-gc-dimmed">
+          Double-click any field to edit · Enter saves · Esc cancels
+        </p>
       </div>
     </div>
 
@@ -141,10 +178,15 @@ function openExternal(url: string | null) {
     </div>
 
     <template v-else-if="prospect">
-      <section class="gc-card p-4">
-        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">Quick Actions</h2>
+      <section class="panel p-4">
+        <h2 class="mb-3 text-sm font-semibold text-gc-highlighted">Quick actions</h2>
         <div class="flex flex-wrap gap-2">
-          <Button label="Generate WhatsApp" icon="pi pi-whatsapp" severity="success" @click="waOpen = true" />
+          <Button
+            label="Generate WhatsApp"
+            icon="pi pi-whatsapp"
+            severity="success"
+            @click="waOpen = true"
+          />
           <Button
             label="Copy Phone"
             icon="pi pi-copy"
@@ -167,7 +209,13 @@ function openExternal(url: string | null) {
             outlined
             @click="openExternal(ensureHttp(prospect.website))"
           />
-          <Button label="Add Note" icon="pi pi-pencil" severity="secondary" outlined @click="noteOpen = true" />
+          <Button
+            label="Add Note"
+            icon="pi pi-pencil"
+            severity="secondary"
+            outlined
+            @click="noteOpen = true"
+          />
           <Button
             label="Change Status"
             icon="pi pi-sync"
@@ -192,30 +240,63 @@ function openExternal(url: string | null) {
       </section>
 
       <div class="grid gap-4 lg:grid-cols-2">
-        <section class="gc-card p-5 space-y-4">
-          <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Business Information</h2>
-          <InlineEdit :model-value="prospect.companyName" label="Company" @save="(v) => saveField({ companyName: v })" />
-          <InlineEdit :model-value="prospect.instagramHandle" label="Instagram" @save="(v) => saveField({ instagramHandle: v })" />
-          <InlineEdit :model-value="prospect.website" label="Website" @save="(v) => saveField({ website: v })" />
-          <InlineEdit :model-value="prospect.phoneNumber" label="Phone" @save="(v) => saveField({ phoneNumber: v })" />
-          <InlineEdit :model-value="prospect.sourceUrl" label="Source URL" @save="(v) => saveField({ sourceUrl: v })" />
-          <InlineEdit :model-value="prospect.notes" label="Summary notes" type="textarea" @save="(v) => saveField({ notes: v })" />
+        <section class="panel space-y-4 p-5">
+          <h2 class="text-sm font-semibold text-gc-highlighted">Business information</h2>
+          <InlineEdit
+            :model-value="prospect.companyName"
+            label="Company"
+            @save="(v) => saveField({ companyName: v })"
+          />
+          <InlineEdit
+            :model-value="prospect.instagramHandle"
+            label="Instagram"
+            @save="(v) => saveField({ instagramHandle: v })"
+          />
+          <InlineEdit
+            :model-value="prospect.website"
+            label="Website"
+            @save="(v) => saveField({ website: v })"
+          />
+          <InlineEdit
+            :model-value="prospect.phoneNumber"
+            label="Phone"
+            @save="(v) => saveField({ phoneNumber: v })"
+          />
+          <InlineEdit
+            :model-value="prospect.sourceUrl"
+            label="Source URL"
+            @save="(v) => saveField({ sourceUrl: v })"
+          />
+          <InlineEdit
+            :model-value="prospect.notes"
+            label="Summary notes"
+            type="textarea"
+            @save="(v) => saveField({ notes: v })"
+          />
         </section>
 
-        <section class="gc-card p-5">
-          <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">Timeline</h2>
-          <div v-if="!timeline.length" class="rounded-xl border border-dashed border-gray-200 px-4 py-10 text-center text-sm text-gray-500">
+        <section class="panel p-5">
+          <h2 class="mb-4 text-sm font-semibold text-gc-highlighted">Timeline</h2>
+          <div
+            v-if="!timeline.length"
+            class="rounded-xl border border-dashed border-gc-border px-4 py-10 text-center text-sm text-gc-text-muted"
+          >
             No activity yet
           </div>
-          <ol v-else class="relative space-y-4 border-l border-gray-200 pl-4">
+          <ol v-else class="relative space-y-4 border-l border-gc-border pl-4">
             <li v-for="item in timeline" :key="item.id" class="relative">
               <span
                 class="absolute -left-[1.35rem] top-1.5 h-2.5 w-2.5 rounded-full"
-                :class="item.kind === 'note' ? 'bg-green-500' : 'bg-gray-300'"
+                :class="item.kind === 'note' ? 'bg-gc-primary' : 'bg-gc-accented'"
               />
-              <div class="text-xs text-gray-500">{{ formatDateTime(item.at) }}</div>
-              <div class="font-medium text-sm">{{ item.title }}</div>
-              <div v-if="item.body" class="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{{ item.body }}</div>
+              <div class="text-[11px] text-gc-dimmed">{{ formatDateTime(item.at) }}</div>
+              <div class="text-sm font-medium text-gc-highlighted">{{ item.title }}</div>
+              <div
+                v-if="item.body"
+                class="mt-1 whitespace-pre-wrap text-sm text-gc-text-muted"
+              >
+                {{ item.body }}
+              </div>
             </li>
           </ol>
         </section>
@@ -223,7 +304,13 @@ function openExternal(url: string | null) {
     </template>
 
     <Dialog v-model:visible="noteOpen" header="Add note" modal class="w-full max-w-md">
-      <Textarea v-model="noteContent" rows="5" class="w-full" autofocus placeholder="What happened?" />
+      <Textarea
+        v-model="noteContent"
+        rows="5"
+        class="w-full"
+        autofocus
+        placeholder="What happened?"
+      />
       <template #footer>
         <Button label="Cancel" text @click="noteOpen = false" />
         <Button label="Save" :loading="savingNote" @click="addNote" />
@@ -231,7 +318,13 @@ function openExternal(url: string | null) {
     </Dialog>
 
     <Dialog v-model:visible="statusOpen" header="Change status" modal class="w-full max-w-sm">
-      <Select v-model="draftStatus" :options="STATUS_OPTIONS" option-label="label" option-value="value" class="w-full" />
+      <Select
+        v-model="draftStatus"
+        :options="STATUS_OPTIONS"
+        option-label="label"
+        option-value="value"
+        class="w-full"
+      />
       <template #footer>
         <Button label="Cancel" text @click="statusOpen = false" />
         <Button label="Update" @click="changeStatus" />
@@ -240,9 +333,17 @@ function openExternal(url: string | null) {
 
     <Dialog v-model:visible="followOpen" header="Schedule follow up" modal class="w-full max-w-sm">
       <DatePicker v-model="draftFollowUp" class="w-full" show-icon date-format="dd M yy" />
-      <p class="mt-2 text-xs text-gray-500">Current: {{ formatDate(prospect?.followUpDate) }}</p>
+      <p class="mt-2 text-xs text-gc-dimmed">Current: {{ formatDate(prospect?.followUpDate) }}</p>
       <template #footer>
-        <Button label="Clear" text severity="secondary" @click="draftFollowUp = null; scheduleFollowUp()" />
+        <Button
+          label="Clear"
+          text
+          severity="secondary"
+          @click="
+            draftFollowUp = null;
+            scheduleFollowUp();
+          "
+        />
         <Button label="Save" @click="scheduleFollowUp" />
       </template>
     </Dialog>

@@ -62,24 +62,26 @@ function open(p: Prospect) {
       autofocus
     />
     <div class="mt-3 max-h-80 overflow-auto">
-      <div v-if="loading" class="text-sm text-gray-500 py-4 text-center">Searching…</div>
-      <div v-else-if="query && !results.length" class="text-sm text-gray-500 py-4 text-center">No results</div>
+      <div v-if="loading" class="py-4 text-center text-sm text-gc-text-muted">Searching…</div>
+      <div v-else-if="query && !results.length" class="py-4 text-center text-sm text-gc-text-muted">
+        No results
+      </div>
       <button
         v-for="p in results"
         :key="p.id"
         type="button"
-        class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left transition hover:bg-green-50"
+        class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-gc-elevated/60"
         @click="open(p)"
       >
         <div>
-          <div class="font-medium text-gray-900">{{ p.companyName }}</div>
-          <div class="text-xs text-gray-500">
+          <div class="font-medium text-gc-highlighted">{{ p.companyName }}</div>
+          <div class="text-xs text-gc-text-muted">
             {{ p.instagramHandle ? `@${p.instagramHandle}` : '—' }}
             ·
             {{ p.phoneNumber || '—' }}
           </div>
         </div>
-        <span class="text-xs text-gray-500">{{ STATUS_LABELS[p.status] }}</span>
+        <span class="text-xs text-gc-dimmed">{{ STATUS_LABELS[p.status] }}</span>
       </button>
     </div>
   </Dialog>

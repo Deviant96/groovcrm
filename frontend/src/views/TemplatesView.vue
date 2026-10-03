@@ -14,6 +14,8 @@ import { useTemplateStore } from '@/stores/templates';
 import { prospectApi, templateApi } from '@/services';
 import { CATEGORY_LABELS, type Template, type TemplateCategory } from '@/types';
 import { renderTemplate } from '@/utils';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import EmptyState from '@/components/ui/EmptyState.vue';
 
 const store = useTemplateStore();
 const toast = useToast();
@@ -143,38 +145,43 @@ function remove(t: Template) {
 </script>
 
 <template>
-  <div class="gc-page space-y-4">
-    <div class="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1 class="text-2xl font-semibold tracking-tight">Templates</h1>
-        <p class="text-sm text-gray-500">
-          Variables: <code class="text-green-700">&#123;&#123;company&#125;&#125;</code>
-          <code class="text-green-700">&#123;&#123;instagram&#125;&#125;</code>
-          <code class="text-green-700">&#123;&#123;website&#125;&#125;</code>
-          <code class="text-green-700">&#123;&#123;phone&#125;&#125;</code>
-          <code class="text-green-700">&#123;&#123;score&#125;&#125;</code>
-        </p>
-      </div>
-      <Button label="New template" icon="pi pi-plus" @click="openCreate" />
-    </div>
+  <div class="space-y-4">
+    <PageHeader title="Templates">
+      <template #actions>
+        <Button label="New template" icon="pi pi-plus" @click="openCreate" />
+      </template>
+    </PageHeader>
+    <p class="text-sm text-gc-text-muted">
+      Variables:
+      <code class="text-gc-primary">&#123;&#123;company&#125;&#125;</code>
+      <code class="text-gc-primary">&#123;&#123;instagram&#125;&#125;</code>
+      <code class="text-gc-primary">&#123;&#123;website&#125;&#125;</code>
+      <code class="text-gc-primary">&#123;&#123;phone&#125;&#125;</code>
+      <code class="text-gc-primary">&#123;&#123;score&#125;&#125;</code>
+    </p>
 
     <div v-if="store.loading" class="grid gap-4 md:grid-cols-2">
       <Skeleton v-for="i in 4" :key="i" height="10rem" />
     </div>
 
-    <div v-else-if="!store.items.length" class="gc-card px-6 py-16 text-center text-gray-500">
-      No templates yet. Create one to speed up WhatsApp outreach.
-    </div>
+    <EmptyState
+      v-else-if="!store.items.length"
+      title="No templates yet"
+      description="Create one to speed up WhatsApp outreach."
+      icon="pi pi-file"
+    >
+      <Button label="New template" icon="pi pi-plus" @click="openCreate" />
+    </EmptyState>
 
     <div v-else class="grid gap-4 md:grid-cols-2">
       <article
         v-for="t in store.items"
         :key="t.id"
-        class="gc-card p-5 transition hover:shadow-md"
+        class="panel panel-hover p-5"
       >
         <div class="mb-2 flex items-start justify-between gap-2">
           <div>
-            <h2 class="font-semibold text-gray-900">{{ t.name }}</h2>
+            <h2 class="font-semibold text-gc-highlighted">{{ t.name }}</h2>
             <div class="mt-1 flex flex-wrap gap-1">
               <Tag :value="CATEGORY_LABELS[t.category]" severity="success" />
               <Tag
@@ -190,7 +197,7 @@ function remove(t: Template) {
             <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click="remove(t)" />
           </div>
         </div>
-        <pre class="mt-3 max-h-40 overflow-auto whitespace-pre-wrap rounded-lg bg-gray-50 p-3 text-sm text-gray-700 font-sans">{{ t.message }}</pre>
+        <pre class="mt-3 max-h-40 overflow-auto whitespace-pre-wrap rounded-lg bg-gc-elevated p-3 font-sans text-sm text-gc-text">{{ t.message }}</pre>
       </article>
     </div>
 
@@ -203,11 +210,11 @@ function remove(t: Template) {
       <div class="grid gap-4 lg:grid-cols-2">
         <div class="space-y-3">
           <div>
-            <label class="mb-1 block text-sm font-medium">Name</label>
+            <label class="mb-1 block text-sm font-medium text-gc-text">Name</label>
             <InputText v-model="form.name" class="w-full" />
           </div>
           <div>
-            <label class="mb-1 block text-sm font-medium">Message type</label>
+            <label class="mb-1 block text-sm font-medium text-gc-text">Message type</label>
             <Select
               v-model="form.category"
               :options="categoryOptions"
@@ -217,8 +224,8 @@ function remove(t: Template) {
             />
           </div>
           <div>
-            <label class="mb-1 block text-sm font-medium">Prospect categories</label>
-            <p class="mb-1.5 text-xs text-gray-500">
+            <label class="mb-1 block text-sm font-medium text-gc-text">Prospect categories</label>
+            <p class="mb-1.5 text-xs text-gc-text-muted">
               Pin which prospect categories this template should be suggested for when generating WhatsApp
               (e.g. Tour &amp; Travel).
             </p>
@@ -241,13 +248,13 @@ function remove(t: Template) {
             </div>
           </div>
           <div>
-            <label class="mb-1 block text-sm font-medium">Message</label>
+            <label class="mb-1 block text-sm font-medium text-gc-text">Message</label>
             <Textarea v-model="form.message" rows="12" class="w-full font-mono text-sm" />
           </div>
         </div>
-        <div class="rounded-xl bg-gray-50 p-4">
-          <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Live preview</div>
-          <pre class="whitespace-pre-wrap text-sm font-sans text-gray-800">{{ preview }}</pre>
+        <div class="rounded-xl bg-gc-elevated p-4">
+          <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-gc-text-muted">Live preview</div>
+          <pre class="whitespace-pre-wrap font-sans text-sm text-gc-text">{{ preview }}</pre>
         </div>
       </div>
       <template #footer>

@@ -17,6 +17,7 @@ import { exportApi, prospectApi } from '@/services';
 import { STATUS_LABELS, STATUS_OPTIONS, type Prospect, type ProspectStatus } from '@/types';
 import { formatDate, statusSeverity } from '@/utils';
 import WhatsAppDialog from '@/components/WhatsAppDialog.vue';
+import PageHeader from '@/components/ui/PageHeader.vue';
 
 const store = useProspectStore();
 const router = useRouter();
@@ -216,23 +217,19 @@ function openWhatsApp(p: Prospect, e: Event) {
 </script>
 
 <template>
-  <div class="gc-page space-y-4">
-    <div class="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1 class="text-2xl font-semibold tracking-tight">Prospects</h1>
-        <p class="text-sm text-gray-500">Search, filter, and outreach from one table</p>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <Button label="Export CSV" icon="pi pi-download" severity="secondary" @click="downloadExport" />
-        <Button label="Import" icon="pi pi-upload" severity="secondary" @click="router.push('/import')" />
-      </div>
-    </div>
+  <div class="space-y-4">
+    <PageHeader title="Prospects" subtitle="Search, filter, and outreach from one table">
+      <template #actions>
+        <div class="hidden flex-wrap gap-2 lg:flex">
+          <Button label="Export CSV" icon="pi pi-download" severity="secondary" @click="downloadExport" />
+          <Button label="Import" icon="pi pi-upload" severity="secondary" @click="router.push('/import')" />
+        </div>
+      </template>
+    </PageHeader>
 
-    <div class="gc-card p-4 space-y-3">
+    <div class="panel space-y-3 p-4">
       <div class="flex flex-wrap gap-3">
-        <span class="p-input-icon-left grow min-w-[200px]">
-          <InputText v-model="search" placeholder="Search anything…" class="w-full" />
-        </span>
+        <InputText v-model="search" placeholder="Search anything…" class="min-w-[200px] grow" />
         <Select v-model="status" :options="[{ label: 'All statuses', value: null }, ...STATUS_OPTIONS]" option-label="label" option-value="value" placeholder="Status" class="min-w-[160px]" show-clear />
         <Select v-model="category" :options="categoryOptions" option-label="label" option-value="value" placeholder="Category" class="min-w-[170px]" show-clear filter />
         <Select v-model="favorite" :options="favoriteOptions" option-label="label" option-value="value" placeholder="Favorite" class="min-w-[150px]" />
@@ -250,8 +247,11 @@ function openWhatsApp(p: Prospect, e: Event) {
         />
       </div>
 
-      <div v-if="selected.length" class="flex flex-wrap items-center gap-2 rounded-xl bg-green-50 px-3 py-2">
-        <span class="text-sm font-medium text-green-800">{{ selected.length }} selected</span>
+      <div
+        v-if="selected.length"
+        class="flex flex-wrap items-center gap-2 rounded-xl border border-gc-primary/20 bg-gc-primary/10 px-3 py-2"
+      >
+        <span class="text-sm font-medium text-gc-primary">{{ selected.length }} selected</span>
         <Select v-model="bulkStatus" :options="STATUS_OPTIONS" option-label="label" option-value="value" placeholder="Change status" class="min-w-[160px]" />
         <Button label="Apply" size="small" :disabled="!bulkStatus" @click="applyBulkStatus" />
         <Button label="Delete" size="small" severity="danger" outlined @click="confirmBulkDelete" />
@@ -291,7 +291,7 @@ function openWhatsApp(p: Prospect, e: Event) {
         @page="(e) => load({ page: (e.page ?? 0) + 1, pageSize: e.rows })"
       >
         <template #empty>
-          <div class="py-10 text-center text-gray-500">
+          <div class="py-10 text-center text-gc-text-muted">
             <div v-if="store.loading"><Skeleton height="2rem" class="mb-2" /><Skeleton height="2rem" /></div>
             <div v-else>No prospects yet. Import a CSV to get started.</div>
           </div>
@@ -300,7 +300,7 @@ function openWhatsApp(p: Prospect, e: Event) {
         <Column selection-mode="multiple" header-style="width: 3rem" frozen />
         <Column v-if="showCol('companyName')" field="companyName" header="Company" sortable style="min-width: 160px" frozen>
           <template #body="{ data }">
-            <span class="font-medium text-gray-900">{{ data.companyName }}</span>
+            <span class="font-medium text-gc-highlighted">{{ data.companyName }}</span>
           </template>
         </Column>
         <Column v-if="showCol('favorite')" field="favorite" header="Favorite" sortable style="min-width: 90px">
@@ -319,7 +319,7 @@ function openWhatsApp(p: Prospect, e: Event) {
         <Column v-if="showCol('category')" field="category" header="Category" sortable style="min-width: 130px">
           <template #body="{ data }">
             <Tag v-if="data.category" :value="data.category" severity="info" />
-            <span v-else class="text-gray-400">—</span>
+            <span v-else class="text-gc-dimmed">—</span>
           </template>
         </Column>
         <Column v-if="showCol('instagramHandle')" field="instagramHandle" header="Instagram" sortable style="min-width: 120px">
@@ -328,15 +328,19 @@ function openWhatsApp(p: Prospect, e: Event) {
         <Column v-if="showCol('phoneNumber')" field="phoneNumber" header="Phone" sortable style="min-width: 120px" />
         <Column v-if="showCol('website')" field="website" header="Website" sortable style="min-width: 140px">
           <template #body="{ data }">
-            <span class="truncate block max-w-[180px]">{{ data.website || '—' }}</span>
+            <span class="block max-w-[180px] truncate">{{ data.website || '—' }}</span>
           </template>
         </Column>
         <Column v-if="showCol('hasWebsite')" field="hasWebsite" header="Has Website" sortable style="min-width: 110px">
           <template #body="{ data }">
-            <i :class="data.hasWebsite ? 'pi pi-check text-green-600' : 'pi pi-times text-gray-300'" />
+            <i :class="data.hasWebsite ? 'pi pi-check text-gc-primary' : 'pi pi-times text-gc-dimmed'" />
           </template>
         </Column>
-        <Column v-if="showCol('score')" field="score" header="Score" sortable style="min-width: 80px" />
+        <Column v-if="showCol('score')" field="score" header="Score" sortable style="min-width: 80px">
+          <template #body="{ data }">
+            <span class="tnum">{{ data.score }}</span>
+          </template>
+        </Column>
         <Column v-if="showCol('status')" field="status" header="Status" sortable style="min-width: 120px">
           <template #body="{ data }">
             <Tag :value="STATUS_LABELS[data.status as ProspectStatus]" :severity="statusSeverity(data.status)" />

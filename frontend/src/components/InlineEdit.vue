@@ -72,10 +72,14 @@ function onKey(e: KeyboardEvent) {
 
 <template>
   <div class="group">
-    <div class="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">{{ label }}</div>
-    <div v-if="!editing" class="rounded-lg px-2 py-1.5 -mx-2 cursor-pointer transition hover:bg-green-50" @dblclick="startEdit">
-      <span class="text-sm text-gray-900 break-all">{{ display }}</span>
-      <span class="ml-2 text-[10px] text-gray-400 opacity-0 group-hover:opacity-100">dbl-click</span>
+    <div class="mb-1 text-xs font-medium uppercase tracking-wide text-gc-text-muted">{{ label }}</div>
+    <div
+      v-if="!editing"
+      class="-mx-2 cursor-pointer rounded-lg px-2 py-1.5 transition-colors hover:bg-gc-elevated/60"
+      @dblclick="startEdit"
+    >
+      <span class="break-all text-sm text-gc-highlighted">{{ display }}</span>
+      <span class="ml-2 text-[10px] text-gc-dimmed opacity-0 group-hover:opacity-100">dbl-click</span>
     </div>
     <div v-else ref="inputEl" class="flex flex-col gap-2" @keydown="onKey">
       <Textarea v-if="type === 'textarea'" v-model="draft as string" rows="3" class="w-full" />
@@ -102,8 +106,8 @@ function onKey(e: KeyboardEvent) {
       />
       <InputText v-else v-model="draft as string" class="w-full" :placeholder="placeholder" />
       <div class="flex gap-2">
-        <button type="button" class="text-xs text-green-700 font-medium" @click="save">Save (Enter)</button>
-        <button type="button" class="text-xs text-gray-500" @click="cancel">Cancel (Esc)</button>
+        <button type="button" class="text-xs font-medium text-gc-primary" @click="save">Save (Enter)</button>
+        <button type="button" class="text-xs text-gc-text-muted" @click="cancel">Cancel (Esc)</button>
       </div>
     </div>
   </div>

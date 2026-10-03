@@ -9,6 +9,7 @@ import Column from 'primevue/column';
 import Message from 'primevue/message';
 import { useToast } from 'primevue/usetoast';
 import { importApi } from '@/services';
+import PageHeader from '@/components/ui/PageHeader.vue';
 
 type Mapping = {
   companyName: string;
@@ -95,7 +96,11 @@ async function runPreview() {
   }
   loading.value = true;
   try {
-    const { data } = await importApi.preview({ mapping: mapping.value, rows: rows.value, headers: headers.value });
+    const { data } = await importApi.preview({
+      mapping: mapping.value,
+      rows: rows.value,
+      headers: headers.value,
+    });
     preview.value = data;
     step.value = 3;
   } finally {
@@ -121,27 +126,26 @@ async function confirmImport() {
 </script>
 
 <template>
-  <div class="gc-page space-y-4 max-w-4xl">
-    <div>
-      <h1 class="text-2xl font-semibold tracking-tight">Import CSV</h1>
-      <p class="text-sm text-gray-500">
-        Map columns, review duplicates, then replace all prospect data.
-      </p>
-    </div>
+  <div class="max-w-4xl space-y-4">
+    <PageHeader
+      title="Import CSV"
+      subtitle="Map columns, review duplicates, then replace all prospect data."
+    />
 
     <Message severity="warn" :closable="false">
-      Confirming import will delete all existing prospects, notes, and activities, then insert the CSV rows.
+      Confirming import will delete all existing prospects, notes, and activities, then insert the CSV
+      rows.
     </Message>
 
     <div class="flex gap-2 text-sm">
-      <span :class="step >= 1 ? 'text-green-700 font-semibold' : 'text-gray-400'">1. Upload</span>
-      <span class="text-gray-300">→</span>
-      <span :class="step >= 2 ? 'text-green-700 font-semibold' : 'text-gray-400'">2. Map</span>
-      <span class="text-gray-300">→</span>
-      <span :class="step >= 3 ? 'text-green-700 font-semibold' : 'text-gray-400'">3. Review</span>
+      <span :class="step >= 1 ? 'font-semibold text-gc-primary' : 'text-gc-dimmed'">1. Upload</span>
+      <span class="text-gc-dimmed">→</span>
+      <span :class="step >= 2 ? 'font-semibold text-gc-primary' : 'text-gc-dimmed'">2. Map</span>
+      <span class="text-gc-dimmed">→</span>
+      <span :class="step >= 3 ? 'font-semibold text-gc-primary' : 'text-gc-dimmed'">3. Review</span>
     </div>
 
-    <section v-if="step === 1" class="gc-card p-6">
+    <section v-if="step === 1" class="panel p-6">
       <FileUpload
         mode="basic"
         accept=".csv,text/csv"
@@ -151,16 +155,18 @@ async function confirmImport() {
         :disabled="loading"
         @select="onSelect"
       />
-      <p class="mt-3 text-sm text-gray-500">UTF-8 CSV with a header row.</p>
+      <p class="mt-3 text-sm text-gc-text-muted">UTF-8 CSV with a header row.</p>
     </section>
 
-    <section v-else-if="step === 2" class="gc-card p-6 space-y-4">
-      <p class="text-sm text-gray-600">{{ rows.length }} rows · {{ headers.length }} columns</p>
+    <section v-else-if="step === 2" class="panel space-y-4 p-6">
+      <p class="text-sm text-gc-text-muted">
+        {{ rows.length }} rows · {{ headers.length }} columns
+      </p>
       <div class="grid gap-3 sm:grid-cols-2">
         <div v-for="field in fields" :key="field.key">
-          <label class="mb-1 block text-sm font-medium">
+          <label class="mb-1 block text-sm font-medium text-gc-text">
             {{ field.label }}
-            <span v-if="'required' in field && field.required" class="text-red-500">*</span>
+            <span v-if="'required' in field && field.required" class="text-red-400">*</span>
           </label>
           <Select
             v-model="(mapping as any)[field.key]"
@@ -174,32 +180,45 @@ async function confirmImport() {
       </div>
       <div class="flex justify-between">
         <Button label="Back" severity="secondary" text @click="step = 1" />
-        <Button label="Preview duplicates" icon="pi pi-eye" :loading="loading" @click="runPreview" />
+        <Button
+          label="Preview duplicates"
+          icon="pi pi-eye"
+          :loading="loading"
+          @click="runPreview"
+        />
       </div>
     </section>
 
-    <section v-else class="gc-card p-6 space-y-4">
+    <section v-else class="panel space-y-4 p-6">
       <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-xl bg-gray-50 p-3">
-          <div class="text-xs text-gray-500">Valid rows</div>
-          <div class="text-2xl font-semibold">{{ preview?.validRows }}</div>
+        <div class="rounded-xl bg-gc-elevated p-3">
+          <div class="text-xs text-gc-text-muted">Valid rows</div>
+          <div class="tnum text-2xl font-semibold text-gc-highlighted">{{ preview?.validRows }}</div>
         </div>
-        <div class="rounded-xl bg-gray-50 p-3">
-          <div class="text-xs text-gray-500">Skipped</div>
-          <div class="text-2xl font-semibold">{{ preview?.skippedRows }}</div>
+        <div class="rounded-xl bg-gc-elevated p-3">
+          <div class="text-xs text-gc-text-muted">Skipped</div>
+          <div class="tnum text-2xl font-semibold text-gc-highlighted">
+            {{ preview?.skippedRows }}
+          </div>
         </div>
-        <div class="rounded-xl bg-amber-50 p-3">
-          <div class="text-xs text-amber-700">Duplicates in file</div>
-          <div class="text-2xl font-semibold text-amber-800">{{ preview?.withinFileDuplicates.length }}</div>
+        <div class="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+          <div class="text-xs text-amber-400">Duplicates in file</div>
+          <div class="tnum text-2xl font-semibold text-amber-400">
+            {{ preview?.withinFileDuplicates.length }}
+          </div>
         </div>
-        <div class="rounded-xl bg-amber-50 p-3">
-          <div class="text-xs text-amber-700">Match existing DB</div>
-          <div class="text-2xl font-semibold text-amber-800">{{ preview?.againstDb.length }}</div>
+        <div class="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+          <div class="text-xs text-amber-400">Match existing DB</div>
+          <div class="tnum text-2xl font-semibold text-amber-400">
+            {{ preview?.againstDb.length }}
+          </div>
         </div>
       </div>
 
-      <p class="text-sm text-gray-600">
-        Existing prospects in database: <strong>{{ preview?.existingCount }}</strong> (will be replaced)
+      <p class="text-sm text-gc-text-muted">
+        Existing prospects in database:
+        <strong class="text-gc-highlighted">{{ preview?.existingCount }}</strong>
+        (will be replaced)
       </p>
 
       <DataTable

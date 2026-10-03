@@ -4,7 +4,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
 </script>
 
 <template>
-  <Toast position="top-right" />
+  <Toast position="top-center" />
   <ConfirmDialog />
   <RouterView />
 </template>

@@ -34,32 +34,55 @@ async function submit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center px-4">
-    <div class="gc-card w-full max-w-md p-8 gc-page">
+  <div class="flex min-h-screen items-center justify-center bg-gc-bg px-4 text-gc-text">
+    <div class="fade-slide-up w-full max-w-sm">
       <div class="mb-8 text-center">
-        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-600 text-xl font-bold text-white">
+        <div
+          class="mx-auto mb-3 flex size-10 items-center justify-center rounded-2xl bg-gc-primary/15 text-lg font-bold text-gc-primary"
+        >
           G
         </div>
-        <h1 class="text-2xl font-semibold tracking-tight">GroovCRM</h1>
-        <p class="mt-1 text-sm text-gray-500">Prospect management & WhatsApp outreach</p>
+        <h1 class="text-xl font-semibold tracking-tight text-gc-highlighted">GroovCRM</h1>
+        <p class="mt-1 text-sm text-gc-text-muted">Prospect management & WhatsApp outreach</p>
       </div>
 
-      <form class="space-y-4" @submit.prevent="submit">
-        <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700">Email</label>
-          <InputText v-model="email" type="email" class="w-full" autocomplete="username" autofocus />
-        </div>
-        <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700">Password</label>
-          <Password v-model="password" class="w-full" input-class="w-full" :feedback="false" toggle-mask autocomplete="current-password" />
-        </div>
-        <div class="flex items-center gap-2">
-          <Checkbox v-model="rememberMe" input-id="remember" binary />
-          <label for="remember" class="text-sm text-gray-600">Remember me</label>
-        </div>
-        <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
-        <Button type="submit" label="Sign in" class="w-full" :loading="auth.loading" />
-      </form>
+      <div class="panel p-6 sm:p-7">
+        <form class="space-y-4" @submit.prevent="submit">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gc-text" for="login-email">Email</label>
+            <InputText
+              id="login-email"
+              v-model="email"
+              type="email"
+              class="w-full"
+              autocomplete="username"
+              autofocus
+            />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gc-text" for="login-password">
+              Password
+            </label>
+            <Password
+              id="login-password"
+              v-model="password"
+              class="w-full"
+              input-class="w-full"
+              :feedback="false"
+              toggle-mask
+              autocomplete="current-password"
+            />
+          </div>
+          <div class="flex items-center gap-2">
+            <Checkbox v-model="rememberMe" input-id="remember" binary />
+            <label for="remember" class="text-sm text-gc-text-muted">Remember me</label>
+          </div>
+          <p v-if="error" class="text-sm text-red-400">{{ error }}</p>
+          <Button type="submit" label="Sign in" class="w-full" :loading="auth.loading" />
+        </form>
+      </div>
+
+      <p class="mt-6 text-center text-xs text-gc-dimmed">Calm outreach. Clear pipeline.</p>
     </div>
   </div>
 </template>
